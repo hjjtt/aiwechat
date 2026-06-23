@@ -1,0 +1,169 @@
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <view class="header-title">联系客服</view>
+    <view class="header-subtitle">我们随时为您服务</view>
+  </view>
+
+  <!-- 客服联系方式 -->
+  <view class="section">
+    <view class="section-title">联系方式</view>
+    <view class="contact-list">
+      <view class="contact-item" bindtap="callPhone">
+        <view class="contact-icon phone">📞</view>
+        <view class="contact-info">
+          <view class="contact-label">客服电话</view>
+          <view class="contact-value">400-123-4567</view>
+        </view>
+        <view class="contact-action">
+          <view class="action-btn">拨打</view>
+        </view>
+      </view>
+
+      <view class="contact-item" bindtap="copyWechat">
+        <view class="contact-icon wechat">💬</view>
+        <view class="contact-info">
+          <view class="contact-label">客服微信</view>
+          <view class="contact-value">renshi_kefu</view>
+        </view>
+        <view class="contact-action">
+          <view class="action-btn">复制</view>
+        </view>
+      </view>
+
+      <view class="contact-item" bindtap="copyQQ">
+        <view class="contact-icon qq">📧</view>
+        <view class="contact-info">
+          <view class="contact-label">客服 QQ</view>
+          <view class="contact-value">12345678</view>
+        </view>
+        <view class="contact-action">
+          <view class="action-btn">复制</view>
+        </view>
+      </view>
+
+      <view class="contact-item" bindtap="sendEmail">
+        <view class="contact-icon email">✉️</view>
+        <view class="contact-info">
+          <view class="contact-label">客服邮箱</view>
+          <view class="contact-value">kefu@renshi.com</view>
+        </view>
+        <view class="contact-action">
+          <view class="action-btn">发送</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 工作时间 -->
+  <view class="section">
+    <view class="section-title">工作时间</view>
+    <view class="work-time">
+      <view class="time-item">
+        <view class="time-icon">🕐</view>
+        <view class="time-info">
+          <view class="time-label">工作日</view>
+          <view class="time-value">周一至周五 9:00 - 18:00</view>
+        </view>
+      </view>
+      <view class="time-item">
+        <view class="time-icon">📅</view>
+        <view class="time-info">
+          <view class="time-label">周末及节假日</view>
+          <view class="time-value">10:00 - 17:00</view>
+        </view>
+      </view>
+      <view class="time-notice">
+        <view class="notice-icon">💡</view>
+        <view class="notice-text">非工作时间留言，我们将尽快回复您</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 常见问题 -->
+  <view class="section">
+    <view class="section-title">常见问题</view>
+    <view class="faq-list">
+      <block wx:for="{{faqList}}" wx:key="id">
+        <view class="faq-item" bindtap="toggleFaq" data-id="{{item.id}}">
+          <view class="faq-question">
+            <view class="question-icon">{{item.expanded ? '🔽' : '▶️'}}</view>
+            <view class="question-text">{{item.question}}</view>
+          </view>
+          <view class="faq-answer" wx:if="{{item.expanded}}">
+            <view class="answer-text">{{item.answer}}</view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 快捷入口 -->
+  <view class="section">
+    <view class="section-title">其他服务</view>
+    <view class="quick-actions">
+      <view class="action-card" bindtap="goToAIChat">
+        <view class="action-icon">🤖</view>
+        <view class="action-text">AI 客服</view>
+        <view class="action-desc">24 小时智能服务</view>
+      </view>
+      <view class="action-card" bindtap="goToFeedback">
+        <view class="action-icon">💭</view>
+        <view class="action-text">意见反馈</view>
+        <view class="action-desc">提出宝贵建议</view>
+      </view>
+      <view class="action-card" bindtap="goToOrders">
+        <view class="action-icon">📋</view>
+        <view class="action-text">我的订单</view>
+        <view class="action-desc">查看订单状态</view>
+      </view>
+      <view class="action-card" bindtap="goToHelp">
+        <view class="action-icon">❓</view>
+        <view class="action-text">帮助中心</view>
+        <view class="action-desc">常见问题解答</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 在线留言 -->
+  <view class="section">
+    <view class="section-title">在线留言</view>
+    <view class="message-form">
+      <view class="form-group">
+        <input
+          class="form-input"
+          placeholder="您的称呼（选填）"
+          value="{{contactName}}"
+          bindinput="onNameInput"
+        />
+      </view>
+      <view class="form-group">
+        <input
+          class="form-input"
+          type="number"
+          placeholder="联系电话（选填）"
+          value="{{contactPhone}}"
+          bindinput="onPhoneInput"
+        />
+      </view>
+      <view class="form-group form-textarea-group">
+        <textarea
+          class="form-textarea"
+          placeholder="请描述您的问题或需求..."
+          value="{{messageContent}}"
+          bindinput="onMessageInput"
+          maxlength="500"
+          auto-height
+        />
+        <view class="char-count">{{messageContent.length}}/500</view>
+      </view>
+      <button 
+        class="submit-btn {{messageContent ? 'active' : 'disabled'}}" 
+        bindtap="submitMessage" 
+        disabled="{{!messageContent}}"
+      >
+        提交留言
+      </button>
+    </view>
+  </view>
+</view>

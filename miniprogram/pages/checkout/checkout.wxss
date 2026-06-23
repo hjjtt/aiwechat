@@ -1,0 +1,386 @@
+/* 支付页 - 日系治愈原木风 */
+page {
+  background: #f9f5f0;
+  background-image: 
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.05"><path d="M0 20 Q20 15 40 20 T80 20 T100 20" stroke="#8b7355" fill="none" stroke-width="0.5"/><path d="M0 40 Q20 35 40 40 T80 40 T100 40" stroke="#8b7355" fill="none" stroke-width="0.5"/></svg>'),
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" opacity="0.03"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter><rect width="200" height="200" filter="url(%23noise)"/></svg>');
+  background-size: 100rpx 100rpx, 200rpx 200rpx;
+}
+
+.container {
+  min-height: 100vh;
+}
+
+/* ==================== 滚动区域 ==================== */
+.checkout-scroll {
+  height: calc(100vh - 140rpx);
+  padding: 20rpx 24rpx 40rpx;
+}
+
+/* 通用区块 */
+.section {
+  background: #fffbf5;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  border: 2rpx solid #e8ded2;
+  box-shadow: 
+    0 3rpx 0 #e8ded2,
+    0 6rpx 12rpx rgba(139,115,85,0.08);
+  position: relative;
+  transform: rotate(var(--rotate, 0deg));
+}
+
+.cart-summary { --rotate: -0.4deg; }
+.address-section { --rotate: 0.3deg; }
+.remark-section { --rotate: -0.2deg; }
+
+/* 和纸胶带装饰 */
+.section::before {
+  content: '';
+  position: absolute;
+  top: -8rpx;
+  left: 50rpx;
+  width: 70rpx;
+  height: 16rpx;
+  background: rgba(var(--tape-color, 212,184,134), 0.4);
+  border-radius: 2rpx;
+  transform: rotate(-3deg);
+}
+
+.cart-summary::before { --tape-color: 212,184,134; }
+.address-section::before { --tape-color: 184,216,190; }
+.remark-section::before { --tape-color: 240,169,169; }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+  padding-bottom: 12rpx;
+  border-bottom: 1rpx dashed #e8ded2;
+}
+
+.section-title {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #5c4b37;
+}
+
+.section-more {
+  font-size: 22rpx;
+  color: #998675;
+  font-weight: 300;
+}
+
+/* ==================== 订单商品 ==================== */
+.cart-items {
+  margin-bottom: 16rpx;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid rgba(232,222,210,0.5);
+}
+
+.cart-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.checkbox {
+  width: 28rpx;
+  height: 28rpx;
+  border: 2rpx solid #e8ded2;
+  border-radius: 6rpx;
+  background: #fff;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.checkbox.checked {
+  background: linear-gradient(135deg, #b8d8be 0%, #94c973 100%);
+  border-color: #94c973;
+  position: relative;
+}
+
+.checkbox.checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 18rpx;
+  font-weight: 600;
+}
+
+.item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.item-name {
+  font-size: 24rpx;
+  color: #5c4b37;
+  font-weight: 400;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-qty {
+  font-size: 22rpx;
+  color: #998675;
+  font-weight: 300;
+  flex-shrink: 0;
+}
+
+.item-price {
+  font-size: 24rpx;
+  color: #c19a6b;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.cart-total {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-top: 12rpx;
+  border-top: 1rpx dashed #e8ded2;
+}
+
+.total-label {
+  font-size: 22rpx;
+  color: #998675;
+  font-weight: 300;
+  margin-right: 12rpx;
+}
+
+.total-price {
+  font-size: 26rpx;
+  color: #c19a6b;
+  font-weight: 600;
+}
+
+/* ==================== 配送地址 ==================== */
+.saved-address-list {
+  margin-bottom: 16rpx;
+}
+
+.saved-address-item {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 16rpx;
+  margin-bottom: 12rpx;
+  border: 2rpx solid #e8ded2;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.saved-address-item:last-child {
+  margin-bottom: 0;
+}
+
+.saved-address-item.active {
+  border-color: #94c973;
+  background: rgba(148,201,115,0.05);
+  transform: translateY(-2rpx);
+  box-shadow: 0 2rpx 8rpx rgba(148,201,115,0.15);
+}
+
+.addr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6rpx;
+}
+
+.addr-tags {
+  display: flex;
+  gap: 8rpx;
+}
+
+.addr-tag {
+  padding: 2rpx 8rpx;
+  background: rgba(212,184,134,0.1);
+  color: #c19a6b;
+  font-size: 18rpx;
+  border-radius: 6rpx;
+  font-weight: 400;
+}
+
+.addr-tag.default {
+  background: rgba(148,201,115,0.1);
+  color: #94c973;
+  font-weight: 500;
+}
+
+.addr-check-icon {
+  width: 24rpx;
+  height: 24rpx;
+  background: linear-gradient(135deg, #b8d8be 0%, #94c973 100%);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.addr-detail {
+  font-size: 22rpx;
+  color: #5c4b37;
+  margin-bottom: 4rpx;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.addr-contact {
+  font-size: 20rpx;
+  color: #998675;
+  font-weight: 300;
+}
+
+.no-address {
+  text-align: center;
+  padding: 40rpx 0;
+  font-size: 22rpx;
+  color: #998675;
+  font-weight: 300;
+}
+
+.add-address-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 16rpx;
+  background: rgba(184,216,190,0.1);
+  border: 2rpx dashed #94c973;
+  border-radius: 12rpx;
+  color: #94c973;
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.add-address-btn:active {
+  background: rgba(184,216,190,0.2);
+}
+
+.add-icon {
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+/* ==================== 备注 ==================== */
+.remark-header {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-bottom: 12rpx;
+}
+
+.remark-hint {
+  font-size: 20rpx;
+  color: #998675;
+  font-weight: 300;
+}
+
+.remark-textarea {
+  width: 100%;
+  min-height: 120rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 16rpx;
+  border: 2rpx solid #e8ded2;
+  box-shadow: inset 0 2rpx 4rpx rgba(139,115,85,0.05);
+  font-size: 24rpx;
+  color: #5c4b37;
+  font-weight: 400;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+.form-placeholder {
+  color: #998675;
+  font-weight: 300;
+}
+
+/* ==================== 底部支付栏 ==================== */
+.footer-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fffbf5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 24rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  border-top: 2rpx solid #e8ded2;
+  z-index: 10;
+  box-shadow: 0 -4rpx 12rpx rgba(139,115,85,0.05);
+}
+
+.footer-left {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+}
+
+.footer-label {
+  font-size: 22rpx;
+  color: #998675;
+  font-weight: 300;
+}
+
+.footer-price {
+  font-size: 32rpx;
+  color: #c19a6b;
+  font-weight: 600;
+}
+
+.submit-btn {
+  padding: 20rpx 48rpx;
+  background: linear-gradient(135deg, #b8d8be 0%, #94c973 100%);
+  color: #fff;
+  border-radius: 16rpx;
+  border: 2rpx solid #fff;
+  box-shadow: 
+    0 4rpx 0 #75a757,
+    0 6rpx 12rpx rgba(148,201,115,0.3);
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.submit-btn:active {
+  transform: translateY(2rpx);
+  box-shadow: 
+    0 2rpx 0 #75a757,
+    0 4rpx 8rpx rgba(148,201,115,0.2);
+}
+
+.submit-btn.disabled {
+  background: #e8ded2;
+  box-shadow: 0 2rpx 4rpx rgba(139,115,85,0.1);
+  color: #998675;
+  border-color: #e8ded2;
+}
+
+/* 公共动画 */
+@keyframes floatSoft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6rpx); }
+}

@@ -1,0 +1,67 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/index/index",
+    "pages/chat/chat",
+    "pages/menu/menu",
+    "pages/orders/orders",
+    "pages/profile/profile",
+    "pages/checkout/checkout",
+    "pages/pay/pay",
+    "pages/location-picker/location-picker",
+    "pages/address-manage/address-manage",
+    "pages/favorites/favorites",
+    "pages/feedback/feedback",
+    "pages/contact/contact",
+    "pages/agreement/agreement"
+  ],
+  "permission": {
+    "scope.userLocation": {
+      "desc": "你的位置信息将用于小程序定位和配送服务"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getLocation",
+    "chooseLocation"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#d4b886",
+    "navigationBarTitleText": "任氏轻食",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#998675",
+    "selectedColor": "#94c973",
+    "backgroundColor": "#fffbf5",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "images/home.png",
+        "selectedIconPath": "images/home_active.png"
+      },
+      {
+        "pagePath": "pages/menu/menu",
+        "text": "点餐",
+        "iconPath": "images/menu.png",
+        "selectedIconPath": "images/menu_active.png"
+      },
+      {
+        "pagePath": "pages/orders/orders",
+        "text": "订单",
+        "iconPath": "images/order.png",
+        "selectedIconPath": "images/order_active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "images/profile.png",
+        "selectedIconPath": "images/profile_active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

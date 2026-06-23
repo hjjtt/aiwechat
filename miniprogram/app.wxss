@@ -1,0 +1,172 @@
+/* app.wxss - 日系治愈原木风全局样式 */
+page {
+  background-color: #f9f5f0;
+  background-image: 
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.05"><path d="M0 20 Q20 15 40 20 T80 20 T100 20" stroke="#8b7355" fill="none" stroke-width="0.5"/><path d="M0 40 Q20 35 40 40 T80 40 T100 40" stroke="#8b7355" fill="none" stroke-width="0.5"/><path d="M0 60 Q20 55 40 60 T80 60 T100 60" stroke="#8b7355" fill="none" stroke-width="0.5"/><path d="M0 80 Q20 75 40 80 T80 80 T100 80" stroke="#8b7355" fill="none" stroke-width="0.5"/></svg>');
+  background-size: 100rpx 100rpx;
+  font-size: 28rpx;
+  color: #5c4b37;
+  font-family: "Hiragino Sans", "Noto Sans JP", "Meiryo", "Yu Gothic", "PingFang SC", "Hiragino Sans GB", "微软雅黑", sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* 通用按钮样式 - 原木软按钮 */
+.btn-primary {
+  background: linear-gradient(135deg, #d4b886 0%, #c19a6b 100%);
+  color: #fff;
+  border-radius: 20rpx;
+  padding: 20rpx 48rpx;
+  font-size: 28rpx;
+  border: 2rpx solid #fff;
+  box-shadow: 
+    0 4rpx 0 #a67c52,
+    0 6rpx 16rpx rgba(193,154,107,0.3);
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-primary:active {
+  transform: translateY(2rpx);
+  box-shadow: 
+    0 2rpx 0 #a67c52,
+    0 4rpx 8rpx rgba(193,154,107,0.2);
+}
+
+/* 通用按钮样式 - 抹茶绿按钮 */
+.btn-secondary {
+  background: linear-gradient(135deg, #b8d8be 0%, #94c973 100%);
+  color: #3a5a40;
+  border-radius: 20rpx;
+  padding: 16rpx 32rpx;
+  font-size: 26rpx;
+  border: 2rpx solid #fff;
+  box-shadow: 
+    0 4rpx 0 #75a757,
+    0 6rpx 12rpx rgba(148,201,115,0.3);
+  font-weight: 500;
+}
+
+/* 通用卡片样式 - 和纸质感卡片 */
+.card {
+  background-color: #fffbf5;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin: 20rpx;
+  border: 2rpx solid #e8ded2;
+  box-shadow: 
+    0 4rpx 0 #e8ded2,
+    0 8rpx 20rpx rgba(139,115,85,0.1);
+  position: relative;
+}
+
+/* 和纸胶带装饰 */
+.card::before {
+  content: '';
+  position: absolute;
+  top: -10rpx;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  width: 80rpx;
+  height: 20rpx;
+  background: rgba(212,184,134,0.4);
+  border-radius: 2rpx;
+}
+
+/* Flex 布局工具 */
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.flex-center {
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-between {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+/* 文本工具 */
+.text-primary {
+  color: #c19a6b;
+}
+
+.text-secondary {
+  color: #94c973;
+}
+
+.text-gray {
+  color: #998675;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-bold {
+  font-weight: 600;
+}
+
+.text-soft {
+  letter-spacing: 1rpx;
+  font-weight: 300;
+}
+
+/* 间距工具 */
+.mt-10 { margin-top: 10rpx; }
+.mt-20 { margin-top: 20rpx; }
+.mt-30 { margin-top: 30rpx; }
+.mb-10 { margin-bottom: 10rpx; }
+.mb-20 { margin-bottom: 20rpx; }
+.mb-30 { margin-bottom: 30rpx; }
+.ml-10 { margin-left: 10rpx; }
+.ml-20 { margin-left: 20rpx; }
+.mr-10 { margin-right: 10rpx; }
+.mr-20 { margin-right: 20rpx; }
+
+.p-20 { padding: 20rpx; }
+.p-30 { padding: 30rpx; }
+
+/* 手绘装饰通用样式 */
+.hand-draw-deco {
+  position: relative;
+  transform: rotate(var(--rotate, 0deg));
+}
+
+.hand-draw-deco::after {
+  content: '🌿';
+  position: absolute;
+  top: -12rpx;
+  right: -8rpx;
+  font-size: 18rpx;
+  opacity: 0.7;
+}
+
+/* 轻微漂浮动画 */
+@keyframes floatSoft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6rpx); }
+}
+
+/* 纸张纹理 */
+.paper-texture {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" opacity="0.03"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter><rect width="200" height="200" filter="url(%23noise)"/></svg>');
+  background-blend-mode: multiply;
+}

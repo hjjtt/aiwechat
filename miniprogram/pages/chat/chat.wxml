@@ -1,0 +1,151 @@
+<view class="chat-container">
+  <!-- 聊天消息区域 -->
+  <scroll-view
+    class="chat-messages"
+    scroll-y="true"
+    scroll-into-view="{{scrollToView}}"
+    scroll-with-animation="{{true}}"
+    lower-threshold="50"
+  >
+    <view class="messages-list">
+      <!-- 欢迎消息 -->
+      <view class="message welcome-message" id="welcome">
+        <view class="avatar assistant-avatar">
+          <text class="avatar-icon">🍽️</text>
+        </view>
+        <view class="message-content welcome-content">
+          <view class="welcome-title">👋 你好，我是任氏外卖AI客服！</view>
+          <view class="welcome-desc">我可以帮你：</view>
+          <view class="welcome-item">🍜 解答菜品相关问题</view>
+          <view class="welcome-item">📋 查询订单状态</view>
+          <view class="welcome-item">🚗 了解配送规则</view>
+          <view class="welcome-item">🎁 获取优惠信息</view>
+        </view>
+      </view>
+
+      <!-- 消息列表 -->
+      <block wx:for="{{messages}}" wx:key="id">
+        <view class="message {{item.role === 'user' ? 'user-message' : 'assistant-message'}}" id="msg-{{item.id}}">
+          <view class="avatar {{item.role === 'user' ? 'user-avatar' : 'assistant-avatar'}}">
+            {{item.role === 'user' ? '我' : '🍽️'}}
+          </view>
+          <view class="message-bubble {{item.role === 'user' ? 'user-bubble' : 'assistant-bubble'}}">
+            <image wx:if="{{item.images && item.images.length > 0}}" wx:for="{{item.images}}" wx:for-item="img" wx:key="*this" src="{{img}}" class="msg-image" mode="aspectFill" />
+            <text class="bubble-content">{{item.content}}</text>
+          </view>
+        </view>
+      </block>
+
+      <!-- 加载中 -->
+      <view class="loading" wx:if="{{loading}}">
+        <view class="avatar assistant-avatar">
+          <text class="avatar-icon">🍽️</text>
+        </view>
+        <view class="loading-content">
+          <view class="loading-dots">
+            <view class="dot"></view>
+            <view class="dot"></view>
+            <view class="dot"></view>
+          </view>
+          <text class="loading-text">小餐正在思考...</text>
+        </view>
+      </view>
+
+      <!-- 底部占位元素，确保能滚动到底部 -->
+      <view class="scroll-anchor" id="scroll-bottom"></view>
+    </view>
+  </scroll-view>
+
+  <!-- 输入区域 -->
+  <view class="input-area" style="padding-bottom: {{keyboardHeight > 0 ? keyboardHeight + 20 : 20 + safeAreaBottom}}rpx;">
+    <!-- 工具栏 -->
+    <view class="toolbar">
+      <view class="toolbar-btn" bindtap="startNewChat">
+        <text class="toolbar-icon">💬</text>
+        <text class="toolbar-text">新对话</text>
+      </view>
+      <view class="toolbar-btn" bindtap="showHistory">
+        <text class="toolbar-icon">📜</text>
+        <text class="toolbar-text">历史</text>
+      </view>
+    </view>
+    <view class="pending-images" wx:if="{{pendingImages.length > 0}}">
+      <view class="pending-img-item" wx:for="{{pendingImages}}" wx:key="*this">
+        <image src="{{item}}" class="pending-img" mode="aspectFill" />
+        <view class="remove-img" bindtap="removeImage" data-index="{{index}}">×</view>
+      </view>
+    </view>
+    <view class="input-wrapper">
+      <view class="add-image-btn" bindtap="chooseImage">📷</view>
+      <input
+        class="message-input"
+        placeholder="输入您的问题..."
+        value="{{inputValue}}"
+        bindinput="onInput"
+        bindconfirm="sendMessage"
+        confirm-type="send"
+        focus="{{inputFocused}}"
+      />
+      <view class="send-btn {{canSend ? 'active' : ''}}" bindtap="sendMessage">
+        <text class="send-icon">➤</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 历史记录弹窗 -->
+  <view class="history-modal {{showHistoryModal ? 'show' : 'hide'}}" wx:if="{{showHistoryModal}}">
+    <view class="history-mask" bindtap="closeHistory"></view>
+    <view class="history-panel">
+      <view class="history-header">
+        <view class="header-left">
+          <text class="history-title">历史对话</text>
+          <text class="history-count">共 {{historyList.length}} 条</text>
+        </view>
+        <view class="header-actions">
+          <view class="clear-btn" bindtap="clearAllHistory" wx:if="{{historyList.length > 0}}">
+            <text>清空</text>
+          </view>
+          <view class="history-close" bindtap="closeHistory">×</view>
+        </view>
+      </view>
+      
+      <scroll-view 
+        class="history-list" 
+        scroll-y="true" 
+        enable-flex="true"
+        show-scrollbar="true"
+      >
+        <block wx:if="{{historyList.length > 0}}">
+          <view
+            class="history-item {{currentHistoryId === item.id ? 'active' : ''}}"
+            wx:for="{{historyList}}"
+            wx:key="id"
+            bindtap="selectHistory"
+            data-id="{{item.id}}"
+          >
+            <view class="history-left">
+              <view class="history-icon">💬</view>
+              <view class="history-item-content">
+                <text class="history-preview">{{item.preview || '空对话'}}</text>
+                <text class="history-time">{{item.timestamp}}</text>
+              </view>
+            </view>
+            <view class="history-delete" catchtap="deleteHistory" data-id="{{item.id}}">🗑️</view>
+          </view>
+        </block>
+        <view wx:else class="history-empty">
+          <view class="empty-icon">📜</view>
+          <text class="empty-text">暂无历史对话</text>
+          <text class="empty-desc">开始新的对话吧</text>
+        </view>
+      </scroll-view>
+      
+      <view class="history-footer">
+        <view class="history-new-btn" bindtap="startNewChat">
+          <text class="btn-icon">＋</text>
+          <text>开始新对话</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

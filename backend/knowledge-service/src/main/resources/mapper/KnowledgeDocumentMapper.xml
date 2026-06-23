@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiwechat.knowledge.repository.KnowledgeDocumentRepository">
+
+    <resultMap id="BaseResultMap" type="com.aiwechat.knowledge.model.entity.KnowledgeDocument">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="source" property="source"/>
+        <result column="file_path" property="filePath"/>
+        <result column="file_type" property="fileType"/>
+        <result column="biz_type" property="bizType"/>
+        <result column="category" property="category"/>
+        <result column="status" property="status"/>
+        <result column="version" property="version"/>
+        <result column="chunk_count" property="chunkCount"/>
+        <result column="metadata" property="metadata"/>
+        <result column="content_hash" property="contentHash"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, title, content, source, file_path, file_type, biz_type, category, status,
+        version, chunk_count, metadata, content_hash, created_at, updated_at
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM knowledge_documents
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM knowledge_documents
+        WHERE status = 'active' OR status IS NULL
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="selectByContentHash" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM knowledge_documents
+        WHERE content_hash = #{contentHash} AND (status = 'active' OR status IS NULL)
+        LIMIT 1
+    </select>
+
+    <select id="selectByBizType" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM knowledge_documents
+        WHERE biz_type = #{bizType} AND (status = 'active' OR status IS NULL)
+        ORDER BY updated_at DESC
+    </select>
+
+    <insert id="insert" parameterType="com.aiwechat.knowledge.model.entity.KnowledgeDocument" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO knowledge_documents (
+            title, content, source, file_path, file_type, biz_type, category, status,
+            version, chunk_count, metadata, content_hash, created_at, updated_at
+        ) VALUES (
+            #{title}, #{content}, #{source}, #{filePath}, #{fileType}, #{bizType}, #{category},
+            #{status}, #{version}, #{chunkCount}, #{metadata}, #{contentHash},
+            #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateChunkCount">
+        UPDATE knowledge_documents
+        SET chunk_count = #{chunkCount}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE knowledge_documents
+        SET status = #{status}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM knowledge_documents WHERE id = #{id}
+    </delete>
+
+</mapper>

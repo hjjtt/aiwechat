@@ -1,0 +1,140 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+  font-size: 14px;
+  color: #303133;
+  background-color: #f5f7fa;
+}
+
+#app {
+  height: 100%;
+}
+
+// 布局
+.el-container {
+  height: 100%;
+}
+
+.el-aside {
+  background-color: #304156;
+  color: #bfcbd9;
+  transition: width 0.3s;
+
+  .logo {
+    height: 60px;
+    line-height: 60px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #263445;
+    overflow: hidden;
+
+    img {
+      width: 32px;
+      height: 32px;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+  }
+}
+
+.el-header {
+  background-color: #fff;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.el-main {
+  background-color: #f5f7fa;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+// 页面标题
+.page-header {
+  margin-bottom: 20px;
+
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #303133;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: #909399;
+    margin-top: 4px;
+  }
+}
+
+// 卡片样式
+.card {
+  background-color: #fff;
+  border-radius: 4px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+// 统计卡片
+.stat-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  padding: 20px;
+  color: #fff;
+
+  .stat-value {
+    font-size: 32px;
+    font-weight: bold;
+  }
+
+  .stat-label {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-top: 4px;
+  }
+}
+
+// 表格样式
+.el-table {
+  th.el-table__cell {
+    background-color: #fafafa;
+  }
+}
+
+// 表单
+.el-form-item__label {
+  font-weight: 500;
+}
+
+// 按钮
+.el-button--primary {
+  --el-button-bg-color: #07c160;
+  --el-button-border-color: #07c160;
+  --el-button-hover-bg-color: #06ad56;
+  --el-button-hover-border-color: #06ad56;
+}
+
+// 滚动条
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c0c4cc;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f5f7fa;
+}

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiwechat.order.repository.OrderRepository">
+
+    <resultMap id="OrderResultMap" type="com.aiwechat.order.model.entity.Order">
+        <id property="id" column="id"/>
+        <result property="orderNumber" column="order_number"/>
+        <result property="userId" column="user_id"/>
+        <result property="status" column="status"/>
+        <result property="totalAmount" column="total_amount"/>
+        <result property="deliveryAddress" column="delivery_address"/>
+        <result property="contactName" column="contact_name"/>
+        <result property="contactPhone" column="contact_phone"/>
+        <result property="remark" column="remark"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <collection property="items" ofType="com.aiwechat.order.model.entity.OrderItem"
+                    select="com.aiwechat.order.repository.OrderItemRepository.findByOrderId" column="id"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, order_number, user_id, status, total_amount, delivery_address,
+        contact_name, contact_phone, remark, created_at, updated_at
+    </sql>
+
+    <select id="findById" resultMap="OrderResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM orders
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByOrderNumber" resultMap="OrderResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM orders
+        WHERE order_number = #{orderNumber}
+    </select>
+
+    <select id="findByUserId" resultMap="OrderResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM orders
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="findByUserIdAndStatus" resultMap="OrderResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM orders
+        WHERE user_id = #{userId} AND status = #{status}
+        ORDER BY created_at DESC
+    </select>
+
+    <insert id="insert" parameterType="com.aiwechat.order.model.entity.Order" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO orders (order_number, user_id, status, total_amount, delivery_address,
+                           contact_name, contact_phone, remark, created_at, updated_at)
+        VALUES (#{orderNumber}, #{userId}, #{status}, #{totalAmount}, #{deliveryAddress},
+                #{contactName}, #{contactPhone}, #{remark}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="updateStatus">
+        UPDATE orders
+        SET status = #{status},
+            updated_at = NOW()
+        WHERE order_number = #{orderNumber}
+    </update>
+
+    <update id="update" parameterType="com.aiwechat.order.model.entity.Order">
+        UPDATE orders
+        SET status = #{status},
+            total_amount = #{totalAmount},
+            delivery_address = #{deliveryAddress},
+            contact_name = #{contactName},
+            contact_phone = #{contactPhone},
+            remark = #{remark},
+            updated_at = #{updatedAt}
+        WHERE order_number = #{orderNumber}
+    </update>
+
+    <!-- ========== 后台管理相关 ========== -->
+
+    <select id="findAllWithFilter" resultMap="OrderResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM orders
+        <where>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (order_number LIKE CONCAT('%', #{keyword}, '%')
+                     OR contact_name LIKE CONCAT('%', #{keyword}, '%')
+                     OR contact_phone LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="count" resultType="int">
+        SELECT COUNT(*)
+        FROM orders
+        <where>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (order_number LIKE CONCAT('%', #{keyword}, '%')
+                     OR contact_name LIKE CONCAT('%', #{keyword}, '%')
+                     OR contact_phone LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+    </select>
+
+    <select id="countByStatus" resultType="int">
+        SELECT COUNT(*) FROM orders WHERE status = #{status}
+    </select>
+
+    <select id="countByDate" resultType="int">
+        SELECT COUNT(*) FROM orders WHERE DATE(created_at) = #{date}
+    </select>
+
+    <select id="sumAmountByDate" resultType="double">
+        SELECT COALESCE(SUM(total_amount), 0) FROM orders
+        WHERE DATE(created_at) = #{date} AND status NOT IN ('cancelled')
+    </select>
+
+</mapper>

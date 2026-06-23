@@ -1,0 +1,41 @@
+<!--pages/agreement/agreement.wxml-->
+<view class="agreement-container">
+  <!-- 顶部导航栏 -->
+  <view class="navbar">
+    <view class="nav-back" bindtap="goBack">
+      <text class="back-icon">‹</text>
+      <text class="back-text">返回</text>
+    </view>
+    <text class="nav-title">{{pageTitle}}</text>
+    <view class="nav-placeholder"></view>
+  </view>
+
+  <!-- 内容区域 -->
+  <scroll-view class="content-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="content-wrapper">
+      <!-- 协议头部 -->
+      <view class="agreement-header">
+        <text class="header-icon">{{headerIcon}}</text>
+        <text class="header-title">{{pageTitle}}</text>
+        <text class="header-update">最后更新：2026 年 04 月 01 日</text>
+      </view>
+
+      <!-- 协议内容 -->
+      <view class="agreement-content">
+        <block wx:for="{{sections}}" wx:key="index">
+          <view class="section">
+            <text class="section-title">{{item.title}}</text>
+            <block wx:for="{{item.content}}" wx:key="index" wx:for-item="paragraph">
+              <text class="section-text">{{paragraph}}</text>
+            </block>
+          </view>
+        </block>
+      </view>
+
+      <!-- 底部提示 -->
+      <view class="footer-tip">
+        <text>如有任何疑问，请联系客服</text>
+      </view>
+    </view>
+  </scroll-view>
+</view>

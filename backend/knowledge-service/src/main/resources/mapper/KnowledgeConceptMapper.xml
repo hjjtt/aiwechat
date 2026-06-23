@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiwechat.knowledge.repository.KnowledgeConceptRepository">
+
+    <resultMap id="BaseResultMap" type="com.aiwechat.knowledge.model.entity.KnowledgeConcept">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="normalized_name" property="normalizedName"/>
+        <result column="concept_type" property="conceptType"/>
+        <result column="frequency" property="frequency"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, name, normalized_name, concept_type, frequency, created_at, updated_at
+    </sql>
+
+    <select id="selectByNormalizedName" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM knowledge_concepts
+        WHERE normalized_name = #{normalizedName}
+    </select>
+
+    <select id="selectByNormalizedNames" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM knowledge_concepts
+        WHERE normalized_name IN
+        <foreach collection="names" item="name" open="(" separator="," close=")">
+            #{name}
+        </foreach>
+    </select>
+
+    <select id="selectByIds" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM knowledge_concepts
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="selectTop" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM knowledge_concepts
+        ORDER BY frequency DESC, id ASC
+        LIMIT #{limit}
+    </select>
+
+    <insert id="insert" parameterType="com.aiwechat.knowledge.model.entity.KnowledgeConcept"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO knowledge_concepts (
+            name, normalized_name, concept_type, frequency, created_at, updated_at
+        ) VALUES (
+            #{name}, #{normalizedName}, #{conceptType}, #{frequency}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <update id="incrementFrequency">
+        UPDATE knowledge_concepts
+        SET frequency = frequency + #{delta}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteAll">
+        DELETE FROM knowledge_concepts
+    </delete>
+</mapper>

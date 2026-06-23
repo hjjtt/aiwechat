@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiwechat.menu.repository.UserFavoriteRepository">
+
+    <!-- 结果映射 -->
+    <resultMap id="UserFavoriteResultMap" type="com.aiwechat.menu.model.entity.UserFavorite">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="menuId" column="menu_id"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 基础列 -->
+    <sql id="Base_Column_List">
+        id, user_id, menu_id, created_at
+    </sql>
+
+    <!-- 根据用户 ID 查询收藏列表 -->
+    <select id="findByUserId" resultMap="UserFavoriteResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM user_favorites
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 检查是否已收藏 -->
+    <select id="checkFavorite" resultMap="UserFavoriteResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM user_favorites
+        WHERE user_id = #{userId} AND menu_id = #{menuId}
+        LIMIT 1
+    </select>
+
+    <!-- 统计用户收藏数量 -->
+    <select id="countByUserId" resultType="int">
+        SELECT COUNT(*)
+        FROM user_favorites
+        WHERE user_id = #{userId}
+    </select>
+
+</mapper>

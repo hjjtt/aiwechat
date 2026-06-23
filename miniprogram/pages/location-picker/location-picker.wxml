@@ -1,0 +1,142 @@
+<view class="container">
+  <!-- 顶部导航栏 -->
+  <view class="nav-bar">
+    <view class="nav-back" bindtap="goBack">
+      <text class="nav-back-icon">‹</text>
+    </view>
+    <view class="nav-title">选择收货地址</view>
+    <view class="nav-placeholder"></view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input-wrapper">
+      <text class="search-icon">🔍</text>
+      <input
+        class="search-input"
+        placeholder="搜索小区、写字楼、学校等"
+        placeholder-class="search-placeholder"
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+        bindconfirm="onSearch"
+      />
+      <view class="clear-btn" bindtap="clearSearch" wx:if="{{searchKeyword}}">
+        <text>✕</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 地图区域 - 让用户可以在地图上选择 -->
+  <view class="map-section" bindtap="openMapPicker">
+    <map
+      id="locationMap"
+      class="map-view"
+      latitude="{{mapLatitude}}"
+      longitude="{{mapLongitude}}"
+      scale="{{mapScale}}"
+      markers="{{markers}}"
+      show-location="{{true}}"
+      enable-satellite="{{false}}"
+      bindmarkertap="onMarkerTap"
+      bindregionchange="onMapRegionChange"
+    ></map>
+    <view class="map-center-marker">
+      <text class="center-icon">📍</text>
+    </view>
+    <view class="map-tip">点击地图重新选择位置</view>
+  </view>
+
+  <!-- 当前定位 -->
+  <view class="current-location" bindtap="useCurrentLocation">
+    <view class="location-icon-wrap">
+      <text class="location-icon">📍</text>
+    </view>
+    <view class="location-info">
+      <text class="location-title">当前位置</text>
+      <text class="location-address {{locationLoading ? 'loading' : ''}}">
+        {{locationLoading ? '正在定位...' : (currentAddress || '点击重新定位')}}
+      </text>
+    </view>
+    <view class="refresh-btn" wx:if="{{!locationLoading}}">
+      <text>重新定位</text>
+    </view>
+    <view class="loading-spinner" wx:if="{{locationLoading}}"></view>
+  </view>
+
+  <!-- 常用地址类型 -->
+  <view class="quick-addresses" wx:if="{{!searchKeyword}}">
+    <view class="quick-title">常用地址</view>
+    <view class="quick-list">
+      <view class="quick-item" bindtap="selectQuickAddress" data-type="home">
+        <text class="quick-icon">🏠</text>
+        <text class="quick-text">家</text>
+      </view>
+      <view class="quick-item" bindtap="selectQuickAddress" data-type="company">
+        <text class="quick-icon">🏢</text>
+        <text class="quick-text">公司</text>
+      </view>
+      <view class="quick-item" bindtap="selectQuickAddress" data-type="school">
+        <text class="quick-icon">🏫</text>
+        <text class="quick-text">学校</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搜索结果列表 -->
+  <scroll-view class="results-list" scroll-y="true" wx:if="{{searchResults.length > 0}}">
+    <view class="results-header">搜索结果</view>
+    <block wx:for="{{searchResults}}" wx:key="id">
+      <view class="result-item" bindtap="selectLocation" data-item="{{item}}">
+        <view class="result-icon">
+          <text>{{index === 0 ? '📍' : '📌'}}</text>
+        </view>
+        <view class="result-info">
+          <text class="result-name">{{item.name}}</text>
+          <text class="result-address">{{item.address || '暂无详细地址'}}</text>
+        </view>
+        <view class="result-distance" wx:if="{{item.distance}}">
+          <text>{{formatDistance(item.distance)}}</text>
+        </view>
+      </view>
+    </block>
+  </scroll-view>
+
+  <!-- 搜索中 -->
+  <view class="searching" wx:if="{{searchLoading && searchKeyword}}">
+    <view class="loading-spinner large"></view>
+    <text>搜索中...</text>
+  </view>
+
+  <!-- 无结果 -->
+  <view class="no-results" wx:if="{{searchKeyword && !searchLoading && searchResults.length === 0 && searchKeyword.length >= 2}}">
+    <text class="no-results-icon">🔍</text>
+    <text class="no-results-text">未找到相关地点</text>
+    <text class="no-results-tip">请尝试其他关键词或使用当前位置</text>
+  </view>
+
+  <!-- 历史记录 -->
+  <view class="history-section" wx:if="{{!searchKeyword && history.length > 0}}">
+    <view class="history-header">
+      <text class="history-title">历史记录</text>
+      <text class="clear-history" bindtap="clearHistory">清除</text>
+    </view>
+    <block wx:for="{{history}}" wx:key="address">
+      <view class="history-item" bindtap="selectHistory" data-item="{{item}}">
+        <text class="history-icon">🕐</text>
+        <view class="history-info">
+          <text class="history-name">{{item.name || item.address}}</text>
+          <text class="history-time">{{formatTime(item.timestamp)}}</text>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 确认按钮 -->
+  <view class="confirm-bar" wx:if="{{selectedLocation}}">
+    <view class="selected-info">
+      <text class="selected-label">{{selectedLocation.label || '已选地址'}}</text>
+      <text class="selected-address">{{selectedLocation.address || selectedLocation.name}}</text>
+    </view>
+    <view class="confirm-btn" bindtap="confirmLocation">确定</view>
+  </view>
+</view>

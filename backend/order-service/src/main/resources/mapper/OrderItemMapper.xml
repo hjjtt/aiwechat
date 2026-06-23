@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiwechat.order.repository.OrderItemRepository">
+
+    <resultMap id="OrderItemResultMap" type="com.aiwechat.order.model.entity.OrderItem">
+        <id property="id" column="id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="menuId" column="menu_id"/>
+        <result property="menuName" column="menu_name"/>
+        <result property="quantity" column="quantity"/>
+        <result property="unitPrice" column="unit_price"/>
+        <result property="subtotal" column="subtotal"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, order_id, menu_id, menu_name, quantity, unit_price, subtotal, created_at
+    </sql>
+
+    <select id="findByOrderId" resultMap="OrderItemResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM order_items
+        WHERE order_id = #{orderId}
+        ORDER BY id
+    </select>
+
+    <insert id="insert" parameterType="com.aiwechat.order.model.entity.OrderItem" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO order_items (order_id, menu_id, menu_name, quantity, unit_price, subtotal, created_at)
+        VALUES (#{orderId}, #{menuId}, #{menuName}, #{quantity}, #{unitPrice}, #{subtotal}, #{createdAt})
+    </insert>
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO order_items (order_id, menu_id, menu_name, quantity, unit_price, subtotal, created_at)
+        VALUES
+        <foreach collection="items" item="item" separator=",">
+            (#{item.orderId}, #{item.menuId}, #{item.menuName}, #{item.quantity},
+             #{item.unitPrice}, #{item.subtotal}, #{item.createdAt})
+        </foreach>
+    </insert>
+
+    <delete id="deleteByOrderId">
+        DELETE FROM order_items WHERE order_id = #{orderId}
+    </delete>
+
+</mapper>

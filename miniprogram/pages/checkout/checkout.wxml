@@ -1,0 +1,101 @@
+<view class="container">
+  <scroll-view class="checkout-scroll" scroll-y="true">
+    <!-- 购物车摘要 -->
+    <view class="section cart-summary">
+      <view class="section-header">
+        <text class="section-title">🛒 订单商品</text>
+        <text class="section-more">共{{cartItems.length}}件</text>
+      </view>
+      <view class="cart-items">
+        <block wx:for="{{cartItems}}" wx:key="menuId">
+          <view class="cart-item" bindtap="toggleItem" data-id="{{item.menuId}}">
+            <view class="checkbox {{checkedItems[item.menuId] ? 'checked' : ''}}"></view>
+            <view class="item-info">
+              <text class="item-name">{{item.item.name}}</text>
+              <text class="item-qty">x{{item.quantity}}</text>
+            </view>
+            <text class="item-price">¥{{formatPrice(item.item.price * item.quantity)}}</text>
+          </view>
+        </block>
+      </view>
+      <view class="cart-total">
+        <text class="total-label">小计</text>
+        <text class="total-price">¥{{totalAmount}}</text>
+      </view>
+    </view>
+
+    <!-- 配送地址 -->
+    <view class="section address-section">
+      <view class="section-header">
+        <text class="section-title">📍 配送地址</text>
+      </view>
+
+      <!-- 已保存的地址列表 -->
+      <view class="saved-address-list" wx:if="{{savedAddresses && savedAddresses.length > 0}}">
+        <block wx:for="{{savedAddresses}}" wx:key="id">
+          <view 
+            class="saved-address-item {{currentAddressIndex === index ? 'active' : ''}}" 
+            bindtap="selectSavedAddress" 
+            data-index="{{index}}"
+            data-contact="{{item.contactName}}"
+            data-phone="{{item.contactPhone}}"
+            data-address="{{item.address}}"
+            data-detail="{{item.detailAddress}}"
+            data-latitude="{{item.latitude}}"
+            data-longitude="{{item.longitude}}"
+          >
+            <view class="addr-row">
+              <view class="addr-tags">
+                <text class="addr-tag default" wx:if="{{item.isDefault}}">默认</text>
+                <text class="addr-tag" wx:elif="{{item.label}}">{{item.label}}</text>
+              </view>
+              <text class="addr-check-icon" wx:if="{{currentAddressIndex === index}}">✓</text>
+            </view>
+            <view class="addr-detail">{{item.address}}</view>
+            <view class="addr-contact">{{item.contactName}} · {{item.contactPhone}}</view>
+          </view>
+        </block>
+      </view>
+
+      <!-- 无地址提示 -->
+      <view class="no-address" wx:else>
+        <text>暂无保存的地址</text>
+      </view>
+
+      <!-- 添加按钮 -->
+      <view class="add-address-btn" bindtap="chooseAddress">
+        <text class="add-icon">+</text>
+        <text>添加新地址</text>
+      </view>
+    </view>
+
+    <!-- 备注 -->
+    <view class="section remark-section">
+      <view class="remark-header">
+        <text class="section-title">📝 备注</text>
+        <text class="remark-hint">选填</text>
+      </view>
+      <textarea
+        class="remark-textarea"
+        placeholder="有什么特殊要求？（如：少放盐、不要辣等）"
+        placeholder-class="form-placeholder"
+        value="{{remark}}"
+        bindinput="onRemarkInput"
+      />
+    </view>
+  </scroll-view>
+
+  <!-- 底部支付栏 -->
+  <view class="footer-bar">
+    <view class="footer-left">
+      <text class="footer-label">合计</text>
+      <text class="footer-price">¥{{totalAmount}}</text>
+    </view>
+    <view
+      class="submit-btn {{submitting ? 'disabled' : ''}}"
+      bindtap="submitOrder"
+    >
+      <text>{{submitting ? '提交中...' : '提交订单'}}</text>
+    </view>
+  </view>
+</view>

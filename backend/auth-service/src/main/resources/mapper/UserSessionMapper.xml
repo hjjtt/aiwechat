@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiwechat.auth.repository.UserSessionRepository">
+    <resultMap id="UserSessionResultMap" type="com.aiwechat.auth.model.entity.UserSession">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="token" column="token"/>
+        <result property="expiresAt" column="expires_at"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="lastActiveAt" column="last_active_at"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, user_id, token, expires_at, created_at, last_active_at
+    </sql>
+    <select id="findByToken" resultMap="UserSessionResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM user_sessions
+        WHERE token = #{token}
+    </select>
+    <insert id="insert" parameterType="com.aiwechat.auth.model.entity.UserSession" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_sessions (user_id, token, expires_at, created_at, last_active_at)
+        VALUES (#{userId}, #{token}, #{expiresAt}, #{createdAt}, #{lastActiveAt})
+    </insert>
+    <update id="updateLastActive">
+        UPDATE user_sessions
+        SET last_active_at = NOW()
+        WHERE token = #{token}
+    </update>
+    <delete id="deleteExpired">
+        DELETE FROM user_sessions
+        WHERE expires_at &lt;= NOW()
+    </delete>
+    <delete id="deleteByUserId">
+        DELETE FROM user_sessions
+        WHERE user_id = #{userId}
+    </delete>
+</mapper>

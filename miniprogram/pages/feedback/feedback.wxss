@@ -1,0 +1,273 @@
+/* 反馈页 - 日系治愈原木风 */
+page {
+  background: #f9f5f0;
+  background-image: 
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.05"><path d="M0 20 Q20 15 40 20 T80 20 T100 20" stroke="#8b7355" fill="none" stroke-width="0.5"/><path d="M0 40 Q20 35 40 40 T80 40 T100 40" stroke="#8b7355" fill="none" stroke-width="0.5"/></svg>'),
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" opacity="0.03"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter><rect width="200" height="200" filter="url(%23noise)"/></svg>');
+  background-size: 100rpx 100rpx, 200rpx 200rpx;
+}
+
+.container {
+  min-height: 100vh;
+  padding-bottom: 40rpx;
+}
+
+/* ==================== 页面头部 ==================== */
+.page-header {
+  padding: 60rpx 24rpx 40rpx;
+  background: linear-gradient(135deg, #e8d5b7 0%, #d4b886 50%, #b8d8be 100%);
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  margin-bottom: 20rpx;
+}
+
+.page-header::before,
+.page-header::after {
+  content: '';
+  position: absolute;
+  opacity: 0.6;
+}
+
+.page-header::before {
+  content: '💭';
+  top: 80rpx;
+  left: 60rpx;
+  font-size: 28rpx;
+  animation: floatSoft 5s ease-in-out infinite;
+}
+
+.page-header::after {
+  content: '✨';
+  top: 100rpx;
+  right: 80rpx;
+  font-size: 24rpx;
+  animation: floatSoft 6s ease-in-out infinite reverse;
+}
+
+.header-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 8rpx;
+  text-shadow: 1rpx 1rpx 4rpx rgba(139,115,85,0.2);
+}
+
+.header-subtitle {
+  font-size: 22rpx;
+  color: rgba(92,75,55,0.8);
+  font-weight: 300;
+}
+
+/* ==================== 通用区块 ==================== */
+.section {
+  background: #fffbf5;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin: 0 24rpx 16rpx;
+  border: 2rpx solid #e8ded2;
+  box-shadow: 
+    0 3rpx 0 #e8ded2,
+    0 6rpx 12rpx rgba(139,115,85,0.08);
+  position: relative;
+  transform: rotate(var(--rotate, 0deg));
+}
+
+.section:nth-child(even) { --rotate: 0.3deg; }
+.section:nth-child(odd) { --rotate: -0.2deg; }
+
+/* 和纸胶带装饰 */
+.section::before {
+  content: '';
+  position: absolute;
+  top: -8rpx;
+  left: 50rpx;
+  width: 70rpx;
+  height: 16rpx;
+  background: rgba(var(--tape-color, 212,184,134), 0.4);
+  border-radius: 2rpx;
+  transform: rotate(-3deg);
+}
+
+.section:nth-child(3n)::before { --tape-color: 184,216,190; }
+.section:nth-child(3n+1)::before { --tape-color: 240,208,160; }
+.section:nth-child(3n+2)::before { --tape-color: 240,169,169; }
+
+.section-title {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #5c4b37;
+  margin-bottom: 16rpx;
+  padding-left: 4rpx;
+}
+
+/* ==================== 评分区域 ==================== */
+.rating-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  padding: 20rpx 0;
+}
+
+.rating-star {
+  display: inline-flex;
+  padding: 8rpx;
+  transition: all 0.2s;
+}
+
+.rating-star:active {
+  transform: scale(1.2);
+}
+
+.star-icon {
+  font-size: 48rpx;
+}
+
+.rating-text {
+  font-size: 24rpx;
+  color: #c19a6b;
+  font-weight: 400;
+  margin-top: 8rpx;
+}
+
+/* ==================== 表单区域 ==================== */
+.form-group {
+  position: relative;
+}
+
+.input-textarea {
+  width: 100%;
+  min-height: 120rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 16rpx;
+  border: 2rpx solid #e8ded2;
+  box-shadow: inset 0 2rpx 4rpx rgba(139,115,85,0.05);
+  font-size: 24rpx;
+  color: #5c4b37;
+  font-weight: 400;
+  line-height: 1.5;
+  box-sizing: border-box;
+  margin-bottom: 8rpx;
+}
+
+.input-textarea::placeholder {
+  color: #998675;
+  font-weight: 300;
+}
+
+.char-count {
+  text-align: right;
+  font-size: 20rpx;
+  color: #998675;
+  font-weight: 300;
+}
+
+/* ==================== AI回复区域 ==================== */
+.ai-answer-box {
+  background: rgba(184,216,190,0.1);
+  border-radius: 16rpx;
+  padding: 20rpx;
+  border: 1rpx dashed #94c973;
+}
+
+.ai-answer-text {
+  font-size: 24rpx;
+  color: #5c4b37;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* ==================== 提交按钮 ==================== */
+.submit-section {
+  padding: 20rpx 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 24rpx;
+  background: #e8ded2;
+  color: #998675;
+  border-radius: 16rpx;
+  border: 2rpx solid #e8ded2;
+  font-size: 28rpx;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.submit-btn.active {
+  background: linear-gradient(135deg, #b8d8be 0%, #94c973 100%);
+  color: #fff;
+  border-color: #fff;
+  box-shadow: 
+    0 4rpx 0 #75a757,
+    0 6rpx 12rpx rgba(148,201,115,0.3);
+}
+
+.submit-btn.active:active {
+  transform: translateY(2rpx);
+  box-shadow: 
+    0 2rpx 0 #75a757,
+    0 4rpx 8rpx rgba(148,201,115,0.2);
+}
+
+/* ==================== 反馈记录 ==================== */
+.feedback-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.feedback-item {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 16rpx;
+  border: 2rpx solid #e8ded2;
+}
+
+.feedback-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+  padding-bottom: 8rpx;
+  border-bottom: 1rpx solid rgba(232,222,210,0.5);
+}
+
+.feedback-rating {
+  font-size: 20rpx;
+}
+
+.feedback-date {
+  font-size: 20rpx;
+  color: #998675;
+  font-weight: 300;
+}
+
+.feedback-content {
+  margin-bottom: 6rpx;
+  font-size: 22rpx;
+  line-height: 1.5;
+}
+
+.feedback-content:last-child {
+  margin-bottom: 0;
+}
+
+.feedback-label {
+  color: #c19a6b;
+  font-weight: 500;
+}
+
+.feedback-text {
+  color: #5c4b37;
+  font-weight: 400;
+}
+
+/* 公共动画 */
+@keyframes floatSoft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6rpx); }
+}

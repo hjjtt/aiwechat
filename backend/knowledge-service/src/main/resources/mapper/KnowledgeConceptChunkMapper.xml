@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiwechat.knowledge.repository.KnowledgeConceptChunkRepository">
+
+    <resultMap id="BaseResultMap" type="com.aiwechat.knowledge.model.entity.KnowledgeConceptChunk">
+        <id column="id" property="id"/>
+        <result column="concept_id" property="conceptId"/>
+        <result column="chunk_id" property="chunkId"/>
+        <result column="document_id" property="documentId"/>
+        <result column="weight" property="weight"/>
+        <result column="source" property="source"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO knowledge_concept_chunks (
+            concept_id, chunk_id, document_id, weight, source, created_at
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.conceptId}, #{item.chunkId}, #{item.documentId},
+                #{item.weight}, #{item.source}, #{item.createdAt}
+            )
+        </foreach>
+    </insert>
+
+    <select id="selectByConceptIds" resultMap="BaseResultMap">
+        SELECT id, concept_id, chunk_id, document_id, weight, source, created_at
+        FROM knowledge_concept_chunks
+        WHERE concept_id IN
+        <foreach collection="conceptIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY weight DESC, id ASC
+        LIMIT #{limit}
+    </select>
+
+    <delete id="deleteAll">
+        DELETE FROM knowledge_concept_chunks
+    </delete>
+</mapper>

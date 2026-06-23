@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiwechat.knowledge.repository.KnowledgeEvalResultRepository">
+
+    <resultMap id="BaseResultMap" type="com.aiwechat.knowledge.model.entity.KnowledgeEvalResult">
+        <id column="id" property="id"/>
+        <result column="eval_case_id" property="evalCaseId"/>
+        <result column="question" property="question"/>
+        <result column="search_type" property="searchType"/>
+        <result column="top1_hit" property="top1Hit"/>
+        <result column="top3_hit" property="top3Hit"/>
+        <result column="top_result" property="topResult"/>
+        <result column="top_result_source" property="topResultSource"/>
+        <result column="top_score" property="topScore"/>
+        <result column="cost_ms" property="costMs"/>
+        <result column="result_count" property="resultCount"/>
+        <result column="evaluated_at" property="evaluatedAt"/>
+    </resultMap>
+
+    <select id="selectLatest" resultMap="BaseResultMap">
+        SELECT * FROM knowledge_eval_results
+        ORDER BY evaluated_at DESC
+        LIMIT #{limit}
+    </select>
+
+    <insert id="insert" parameterType="com.aiwechat.knowledge.model.entity.KnowledgeEvalResult" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO knowledge_eval_results (
+            eval_case_id, question, search_type, top1_hit, top3_hit,
+            top_result, top_result_source, top_score, cost_ms, result_count, evaluated_at
+        ) VALUES (
+            #{evalCaseId}, #{question}, #{searchType}, #{top1Hit}, #{top3Hit},
+            #{topResult}, #{topResultSource}, #{topScore}, #{costMs}, #{resultCount}, #{evaluatedAt}
+        )
+    </insert>
+
+    <delete id="deleteAll">
+        DELETE FROM knowledge_eval_results
+    </delete>
+
+</mapper>

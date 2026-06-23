@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiwechat.order.repository.MenuItemRepository">
+
+    <resultMap id="MenuItemResultMap" type="com.aiwechat.order.model.entity.MenuItem">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="price" column="price"/>
+        <result property="isAvailable" column="is_available"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, name, price, is_available
+    </sql>
+
+    <select id="findByIds" resultMap="MenuItemResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM menu_items
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+</mapper>

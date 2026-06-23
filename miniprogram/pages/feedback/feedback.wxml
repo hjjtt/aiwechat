@@ -1,0 +1,100 @@
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <view class="header-title">意见反馈</view>
+    <view class="header-subtitle">您的建议是我们进步的动力</view>
+  </view>
+
+  <!-- 评分区域 -->
+  <view class="section">
+    <view class="section-title">整体评分</view>
+    <view class="rating-section">
+      <view
+        wx:for="{{[1, 2, 3, 4, 5]}}"
+        wx:key="*this"
+        class="rating-star {{rating >= item ? 'active' : ''}}"
+        bindtap="selectRating"
+        data-rating="{{item}}"
+      >
+        <text class="star-icon">{{item <= rating ? '⭐' : '☆'}}</text>
+      </view>
+      <view class="rating-text">{{ratingText}}</view>
+    </view>
+  </view>
+
+  <!-- 问题描述 -->
+  <view class="section">
+    <view class="section-title">问题描述（选填）</view>
+    <view class="form-group">
+      <textarea
+        class="input-textarea"
+        placeholder="请描述您遇到的问题或建议..."
+        value="{{question}}"
+        bindinput="onQuestionInput"
+        maxlength="500"
+        auto-height
+      />
+      <view class="char-count">{{question.length}}/500</view>
+    </view>
+  </view>
+
+  <!-- AI 回答显示（如果有） -->
+  <view class="section" wx:if="{{aiAnswer}}">
+    <view class="section-title">AI 回复</view>
+    <view class="ai-answer-box">
+      <view class="ai-answer-text">{{aiAnswer}}</view>
+    </view>
+  </view>
+
+  <!-- 详细意见 -->
+  <view class="section">
+    <view class="section-title">详细意见（选填）</view>
+    <view class="form-group">
+      <textarea
+        class="input-textarea"
+        placeholder="请留下您的宝贵意见或建议..."
+        value="{{comment}}"
+        bindinput="onCommentInput"
+        maxlength="500"
+        auto-height
+      />
+      <view class="char-count">{{comment.length}}/500</view>
+    </view>
+  </view>
+
+  <!-- 提交按钮 -->
+  <view class="submit-section">
+    <button
+      class="submit-btn {{rating > 0 ? 'active' : 'disabled'}}"
+      bindtap="submitFeedback"
+      disabled="{{rating === 0}}"
+    >
+      提交反馈
+    </button>
+  </view>
+
+  <!-- 我的反馈记录 -->
+  <view class="section" wx:if="{{feedbackHistory.length > 0}}">
+    <view class="section-title">我的反馈记录</view>
+    <view class="feedback-list">
+      <block wx:for="{{feedbackHistory}}" wx:key="id">
+        <view class="feedback-item">
+          <view class="feedback-header">
+            <view class="feedback-rating">
+              <text wx:for="{{[1, 2, 3, 4, 5]}}" wx:key="*this" wx:if="{{item.rating >= index + 1}}">⭐</text>
+            </view>
+            <view class="feedback-date">{{item.createdAt}}</view>
+          </view>
+          <view class="feedback-content" wx:if="{{item.question}}">
+            <text class="feedback-label">问题：</text>
+            <text class="feedback-text">{{item.question}}</text>
+          </view>
+          <view class="feedback-content" wx:if="{{item.comment}}">
+            <text class="feedback-label">意见：</text>
+            <text class="feedback-text">{{item.comment}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiwechat.knowledge.repository.KnowledgeChunkRepository">
+
+    <resultMap id="BaseResultMap" type="com.aiwechat.knowledge.model.entity.KnowledgeChunk">
+        <id column="id" property="id"/>
+        <result column="document_id" property="documentId"/>
+        <result column="content" property="content"/>
+        <result column="chunk_index" property="chunkIndex"/>
+        <result column="chunk_type" property="chunkType"/>
+        <result column="source" property="source"/>
+        <result column="vector_synced" property="vectorSynced"/>
+        <result column="keywords" property="keywords"/>
+        <result column="metadata" property="metadata"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, document_id, content, chunk_index, chunk_type, source,
+        vector_synced, keywords, metadata, created_at, updated_at
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM knowledge_chunks
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByDocumentId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM knowledge_chunks
+        WHERE document_id = #{documentId}
+        ORDER BY chunk_index ASC
+    </select>
+
+    <select id="keywordSearch" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM knowledge_chunks
+        WHERE status = 'active'
+        AND (
+            content LIKE CONCAT('%', #{keyword}, '%')
+            OR keywords LIKE CONCAT('%', #{keyword}, '%')
+            OR source LIKE CONCAT('%', #{keyword}, '%')
+        )
+        ORDER BY chunk_index ASC
+        LIMIT #{limit}
+    </select>
+
+    <select id="searchByKeywords" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM knowledge_chunks
+        WHERE
+            content LIKE CONCAT('%', #{keyword}, '%')
+            OR keywords LIKE CONCAT('%', #{keyword}, '%')
+            OR source LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY chunk_index ASC
+        LIMIT #{limit}
+    </select>
+
+    <insert id="insert" parameterType="com.aiwechat.knowledge.model.entity.KnowledgeChunk">
+        INSERT INTO knowledge_chunks (
+            id, document_id, content, chunk_index, chunk_type, source,
+            vector_synced, keywords, metadata, created_at, updated_at
+        ) VALUES (
+            #{id}, #{documentId}, #{content}, #{chunkIndex}, #{chunkType}, #{source},
+            #{vectorSynced}, #{keywords}, #{metadata}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO knowledge_chunks (
+            id, document_id, content, chunk_index, chunk_type, source,
+            vector_synced, keywords, metadata, created_at, updated_at
+        ) VALUES
+        <foreach collection="list" item="chunk" separator=",">
+            (
+                #{chunk.id}, #{chunk.documentId}, #{chunk.content}, #{chunk.chunkIndex},
+                #{chunk.chunkType}, #{chunk.source}, #{chunk.vectorSynced}, #{chunk.keywords},
+                #{chunk.metadata}, #{chunk.createdAt}, #{chunk.updatedAt}
+            )
+        </foreach>
+    </insert>
+
+    <delete id="deleteByDocumentId">
+        DELETE FROM knowledge_chunks WHERE document_id = #{documentId}
+    </delete>
+
+    <delete id="deleteById">
+        DELETE FROM knowledge_chunks WHERE id = #{id}
+    </delete>
+
+</mapper>

@@ -1,0 +1,95 @@
+<!--pages/login/login.wxml-->
+<view class="login-container">
+  <view class="bg-decoration">
+    <view class="bg-orb bg-orb-1"></view>
+    <view class="bg-orb bg-orb-2"></view>
+    <view class="bg-wave"></view>
+    <view class="circle circle-1"></view>
+    <view class="circle circle-2"></view>
+    <view class="circle circle-3"></view>
+  </view>
+
+  <view class="main-content">
+    <view class="logo-section">
+      <view class="brand-badge"></view>
+      <view class="logo-wrapper">
+        <view class="logo-bg">
+          <text class="logo-emoji">🍜</text>
+        </view>
+        <view class="logo-glow"></view>
+      </view>
+      <text class="app-name">任氏外卖</text>
+      <text class="slogan">智能点餐 · 送到家</text>
+    </view>
+
+    <view class="welcome-card">
+      <view class="card-highlight"></view>
+
+      <view class="card-header">
+        <text class="card-title">欢迎使用</text>
+        <text class="card-subtitle">登录后享受更多服务</text>
+      </view>
+
+      <view class="card-divider"></view>
+
+      <view class="avatar-section">
+        <view class="avatar-ring">
+          <button class="avatar-btn {{avatarUrl ? 'avatar-btn-active' : ''}}" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+            <view class="avatar-shine"></view>
+            <image wx:if="{{avatarUrl}}" class="avatar-img avatar-img-active" src="{{avatarUrl}}" mode="aspectFit" />
+            <text wx:else class="avatar-placeholder">👤</text>
+          </button>
+        </view>
+        <text class="avatar-tip">点击选择头像</text>
+      </view>
+
+      <view class="form-section">
+        <view class="form-item">
+          <text class="form-label">昵称</text>
+          <view class="input-shell">
+            <input
+              class="form-input"
+              type="nickname"
+              placeholder="点击选择微信昵称"
+              placeholder-class="placeholder"
+              bindinput="onNicknameInput"
+              bindblur="onNicknameBlur"
+              value="{{nickname}}"
+              maxlength="20"
+            />
+          </view>
+        </view>
+      </view>
+
+      <view class="action-section">
+        <button
+          class="login-btn"
+          bindtap="handleWechatLogin"
+          disabled="{{loading || !nickname}}"
+        >
+          <text wx:if="{{!loading}}">微信一键登录</text>
+          <text wx:else>登录中...</text>
+        </button>
+
+        <button
+          class="guest-btn"
+          bindtap="handleGuestLogin"
+          disabled="{{loading}}"
+        >
+          随便逛逛
+        </button>
+      </view>
+
+      <view class="agreement">
+        <text class="agreement-text">登录即表示同意</text>
+        <text class="link" bindtap="openAgreement" data-type="user">《用户协议》</text>
+        <text class="agreement-text">和</text>
+        <text class="link" bindtap="openAgreement" data-type="privacy">《隐私政策》</text>
+      </view>
+    </view>
+
+    <view class="footer-tip">
+      <text class="footer-text">安全登录 · 隐私保护</text>
+    </view>
+  </view>
+</view>

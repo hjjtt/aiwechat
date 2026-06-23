@@ -1,0 +1,302 @@
+<!--首页 日系治愈原木风-->
+<view class="container">
+  <!-- 顶部浅木色渐变背景 -->
+  <view class="header-bg">
+    <view class="header-pattern"></view>
+  </view>
+
+  <!-- 主横幅区域 -->
+  <view class="hero-section">
+    <view class="hero-badge">
+      <view class="badge-dot"></view>
+      <text class="badge-text">营业中</text>
+    </view>
+    <view class="hero-title">任氏轻食</view>
+    <view class="hero-subtitle" style="font-size:22rpx; opacity:0.9; margin-bottom:8rpx;">おいしい食事で健康な生活を</view>
+    <view class="hero-subtitle">慢生活 · 好味道 · 天然食材</view>
+
+    <!-- 搜索框 -->
+    <view class="search-bar">
+      <text class="search-icon">🔍</text>
+      <text class="search-placeholder">搜索你喜欢的美食~</text>
+    </view>
+
+    <!-- 定位栏 -->
+    <view class="location-bar" bindtap="chooseLocation">
+      <text class="location-icon">📍</text>
+      <view class="location-info">
+        <text class="location-text">{{locationAddress || '当前位置：配送范围内'}}</text>
+        <text class="location-tip">30 分钟内送达</text>
+      </view>
+      <text class="location-refresh {{isLocating ? 'rotating' : ''}}">⟳</text>
+    </view>
+
+    <view class="hero-tags">
+      <view class="tag-pill">
+        <text class="tag-emoji">🥗</text>
+        <text>ヘルシー · 健康轻食</text>
+      </view>
+      <view class="tag-pill">
+        <text class="tag-emoji">☕</text>
+        <text>コーヒー · 现磨咖啡</text>
+      </view>
+      <view class="tag-pill">
+        <text class="tag-emoji">🍞</text>
+        <text>パン · 手作面包</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 快捷功能区 -->
+  <view class="action-section">
+    <view class="action-card">
+      <view class="action-grid">
+        <view class="action-item" bindtap="navigateToMenu">
+          <view class="action-icon bg-gradient-purple">
+            <text class="action-icon-emoji">🍱</text>
+          </view>
+          <view class="action-info">
+            <view class="action-label">点餐</view>
+            <view class="action-desc">直接点</view>
+          </view>
+        </view>
+        <view class="action-divider"></view>
+        <view class="action-item" bindtap="navigateToOrders">
+          <view class="action-icon bg-gradient-orange">
+            <text class="action-icon-emoji">🛒</text>
+          </view>
+          <view class="action-info">
+            <view class="action-label">我的订单</view>
+            <view class="action-desc">查物流</view>
+          </view>
+        </view>
+        <view class="action-divider"></view>
+        <view class="action-item" bindtap="navigateToFavorites">
+          <view class="action-icon bg-gradient-blue">
+            <text class="action-icon-emoji">❤</text>
+          </view>
+          <view class="action-info">
+            <view class="action-label">我的收藏</view>
+            <view class="action-desc">常吃的</view>
+          </view>
+        </view>
+        <view class="action-divider"></view>
+        <view class="action-item" bindtap="navigateToProfile">
+          <view class="action-icon bg-gradient-green">
+            <text class="action-icon-emoji">👤</text>
+          </view>
+          <view class="action-info">
+            <view class="action-label">我的</view>
+            <view class="action-desc">个人中心</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 热销推荐区块 - 从数据库动态加载 -->
+  <view class="section">
+    <view class="section-header">
+      <view class="section-title-group">
+        <view class="title-icon-wrap">
+          <text class="title-icon-emoji">🔥</text>
+        </view>
+        <view class="section-title">热销推荐</view>
+      </view>
+      <view class="section-more" bindtap="viewAllHot">
+        查看全部 <text class="more-arrow">></text>
+      </view>
+    </view>
+    <scroll-view class="hot-scroll" scroll-x="true" show-scrollbar="false">
+      <block wx:for="{{hotItems}}" wx:key="id">
+        <view class="hot-card" style="--rotate: {{item.rotate || 0}}deg;" bindtap="goToMenuDetail" data-name="{{item.name}}">
+          <view class="card-sticker">{{item.sticker || '✨'}}</view>
+          <view class="hot-image">{{item.emoji || '🍽️'}}</view>
+          <view class="hot-info">
+            <view class="hot-name">{{item.name}}</view>
+            <view class="hot-sales">月售 {{item.salesCount || 0}}</view>
+            <view class="hot-footer">
+              <view class="hot-price">
+                <text class="price-symbol">¥</text>
+                <text class="price-value">{{item.priceFormatted || item.price}}</text>
+              </view>
+              <view class="hot-add" catchtap="addToCart" data-menuid="{{item.id}}" data-name="{{item.name}}" data-price="{{item.price}}">+</view>
+            </view>
+          </view>
+        </view>
+      </block>
+      <!-- 默认热销菜品（数据库加载失败时显示） -->
+      <view class="hot-card" style="--rotate: -1.2deg;" bindtap="goToMenuDetail" data-name="招牌牛肉面" wx:if="{{!hotItems || hotItems.length === 0}}">
+        <view class="card-sticker">🌿</view>
+        <view class="hot-image">🍜</view>
+        <view class="hot-info">
+          <view class="hot-name">招牌牛肉面</view>
+          <view class="hot-sales">月售 156</view>
+          <view class="hot-footer">
+            <view class="hot-price">
+              <text class="price-symbol">¥</text>
+              <text class="price-value">38</text>
+            </view>
+            <view class="hot-add" catchtap="addToCart" data-menuid="1" data-name="招牌牛肉面" data-price="38">+</view>
+          </view>
+        </view>
+      </view>
+      <view class="hot-card" style="--rotate: 0.8deg;" bindtap="goToMenuDetail" data-name="宫保鸡丁" wx:if="{{!hotItems || hotItems.length === 0}}">
+        <view class="card-sticker">🌶️</view>
+        <view class="hot-image">🍗</view>
+        <view class="hot-info">
+          <view class="hot-name">宫保鸡丁</view>
+          <view class="hot-sales">月售 89</view>
+          <view class="hot-footer">
+            <view class="hot-price">
+              <text class="price-symbol">¥</text>
+              <text class="price-value">32</text>
+            </view>
+            <view class="hot-add" catchtap="addToCart" data-menuid="2" data-name="宫保鸡丁" data-price="32">+</view>
+          </view>
+        </view>
+      </view>
+      <view class="hot-card" style="--rotate: -0.6deg;" bindtap="goToMenuDetail" data-name="红烧肉" wx:if="{{!hotItems || hotItems.length === 0}}">
+        <view class="card-sticker">🥩</view>
+        <view class="hot-image">🥘</view>
+        <view class="hot-info">
+          <view class="hot-name">红烧肉</view>
+          <view class="hot-sales">月售 234</view>
+          <view class="hot-footer">
+            <view class="hot-price">
+              <text class="price-symbol">¥</text>
+              <text class="price-value">45</text>
+            </view>
+            <view class="hot-add" catchtap="addToCart" data-menuid="4" data-name="红烧肉" data-price="45">+</view>
+          </view>
+        </view>
+      </view>
+      <view class="hot-card" style="--rotate: 1.3deg;" bindtap="goToMenuDetail" data-name="糖醋里脊" wx:if="{{!hotItems || hotItems.length === 0}}">
+        <view class="card-sticker">✨</view>
+        <view class="hot-image">🍖</view>
+        <view class="hot-info">
+          <view class="hot-name">糖醋里脊</view>
+          <view class="hot-sales">月售 167</view>
+          <view class="hot-footer">
+            <view class="hot-price">
+              <text class="price-symbol">¥</text>
+              <text class="price-value">35</text>
+            </view>
+            <view class="hot-add" catchtap="addToCart" data-menuid="13" data-name="糖醋里脊" data-price="35">+</view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 分类快捷入口 -->
+  <view class="section">
+    <view class="section-header">
+      <view class="section-title-group">
+        <view class="title-icon-wrap accent">
+          <text class="title-icon-emoji">📋</text>
+        </view>
+        <view class="section-title">美食分类</view>
+      </view>
+    </view>
+    <view class="category-grid">
+      <view class="category-item" bindtap="navigateToMenu" data-category="主食">
+        <view class="category-icon">🍜</view>
+        <view class="category-name">主食</view>
+      </view>
+      <view class="category-item" bindtap="navigateToMenu" data-category="热菜">
+        <view class="category-icon">🍲</view>
+        <view class="category-name">热菜</view>
+      </view>
+      <view class="category-item" bindtap="navigateToMenu" data-category="素菜">
+        <view class="category-icon">🥬</view>
+        <view class="category-name">素菜</view>
+      </view>
+      <view class="category-item" bindtap="navigateToMenu" data-category="汤类">
+        <view class="category-icon">🍲</view>
+        <view class="category-name">汤类</view>
+      </view>
+      <view class="category-item" bindtap="navigateToMenu" data-category="凉菜">
+        <view class="category-icon">🥗</view>
+        <view class="category-name">凉菜</view>
+      </view>
+      <view class="category-item" bindtap="navigateToMenu" data-category="小吃">
+        <view class="category-icon">🍟</view>
+        <view class="category-name">小吃</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 营业信息区块 -->
+  <view class="section">
+    <view class="section-header">
+      <view class="section-title-group">
+        <view class="title-icon-wrap accent">
+          <text class="title-icon-emoji">ℹ️</text>
+        </view>
+        <view class="section-title">门店信息</view>
+      </view>
+    </view>
+    <view class="info-card">
+      <view class="info-grid">
+        <view class="info-item">
+          <view class="info-icon-wrap">
+            <text class="info-icon-text">⏰</text>
+          </view>
+          <view class="info-content">
+            <view class="info-label">营业时间</view>
+            <view class="info-value">周一至周日 7:00-22:00</view>
+          </view>
+        </view>
+        <view class="info-item">
+          <view class="info-icon-wrap">
+            <text class="info-icon-text">📞</text>
+          </view>
+          <view class="info-content">
+            <view class="info-label">联系电话</view>
+            <view class="info-value">400-123-4567</view>
+          </view>
+        </view>
+        <view class="info-item">
+          <view class="info-icon-wrap">
+            <text class="info-icon-text">🚚</text>
+          </view>
+          <view class="info-content">
+            <view class="info-label">配送范围</view>
+            <view class="info-value">3公里内免费配送</view>
+          </view>
+        </view>
+        <view class="info-item">
+          <view class="info-icon-wrap">
+            <text class="info-icon-text">🎉</text>
+          </view>
+          <view class="info-content">
+            <view class="info-label">优惠活动</view>
+            <view class="info-value">满50减10，新用户减20</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 日系店员卡通角色 -->
+  <view class="cartoon-role" bindtap="navigateToChat">
+    <view class="role-bubble">
+      <text class="bubble-text">有问题找我哦~</text>
+    </view>
+    <view class="role-avatar">👩🍳</view>
+    <text class="role-deco role-deco-1">🌿</text>
+    <text class="role-deco role-deco-2">✨</text>
+  </view>
+
+  <!-- 角落手绘涂鸦 -->
+  <text class="graffiti graffiti-1">☕</text>
+  <text class="graffiti graffiti-2">🥗</text>
+  <text class="graffiti graffiti-3">🍞</text>
+
+  <!-- 底部安全提示 -->
+  <view class="footer-safe">
+    <text class="safe-icon">🛡️</text>
+    <text class="safe-text">食材可溯源 · 全程无接触配送</text>
+  </view>
+</view>

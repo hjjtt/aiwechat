@@ -1,0 +1,524 @@
+/* 位置选择页 - 日系治愈原木风 */
+.container {
+  background-color: #f9f5f0;
+  background-image:
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.05"><path d="M0 20 Q20 15 40 20 T80 20 T100 20" stroke="#8b7355" fill="none" stroke-width="0.5"/><path d="M0 40 Q20 35 40 40 T80 40 T100 40" stroke="#8b7355" fill="none" stroke-width="0.5"/><path d="M0 60 Q20 55 40 60 T80 60 T100 60" stroke="#8b7355" fill="none" stroke-width="0.5"/><path d="M0 80 Q20 75 40 80 T80 80 T100 80" stroke="#8b7355" fill="none" stroke-width="0.5"/></svg>');
+  background-size: 100rpx 100rpx;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding-top: 80rpx;
+}
+
+/* ==================== 顶部导航栏 - 原木渐变标题栏 ==================== */
+.nav-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80rpx;
+  background: linear-gradient(135deg, #e8d5b7 0%, #d4b886 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24rpx;
+  border-bottom: 2rpx solid #c19a6b;
+  z-index: 10;
+  box-shadow: 0 2rpx 8rpx rgba(139,115,85,0.15);
+}
+
+.nav-back {
+  width: 60rpx;
+  height: 60rpx;
+  background: rgba(255,255,255,0.4);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2rpx solid rgba(255,255,255,0.6);
+  transition: all 0.2s;
+}
+
+.nav-back:active {
+  background: rgba(255,255,255,0.6);
+  transform: scale(0.95);
+}
+
+.nav-back-icon {
+  font-size: 40rpx;
+  color: #5c4b37;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.nav-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #5c4b37;
+  letter-spacing: 2rpx;
+}
+
+.nav-placeholder {
+  width: 60rpx;
+}
+
+/* ==================== 搜索栏 - 清新搜索框 ==================== */
+.search-bar {
+  background: #fffbf5;
+  padding: 16rpx 24rpx;
+  border-bottom: 2rpx solid #e8ded2;
+  flex-shrink: 0;
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 50rpx;
+  padding: 16rpx 24rpx;
+  border: 2rpx solid #e8ded2;
+  box-shadow: inset 0 2rpx 4rpx rgba(139,115,85,0.05);
+  transition: all 0.2s;
+}
+
+.search-input-wrapper:focus-within {
+  border-color: #94c973;
+  box-shadow:
+    inset 0 2rpx 4rpx rgba(139,115,85,0.05),
+    0 0 0 3rpx rgba(148,201,115,0.15);
+}
+
+.search-icon {
+  font-size: 28rpx;
+  margin-right: 12rpx;
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #5c4b37;
+}
+
+.search-placeholder {
+  color: #998675;
+}
+
+.clear-btn {
+  width: 36rpx;
+  height: 36rpx;
+  background: #e8ded2;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20rpx;
+  color: #998675;
+  flex-shrink: 0;
+  margin-left: 12rpx;
+  transition: all 0.2s;
+}
+
+.clear-btn:active {
+  background: #d4c6b0;
+}
+
+/* ==================== 地图区域 ==================== */
+.map-section {
+  position: relative;
+  height: 320rpx;
+  background: #fff;
+  border-bottom: 2rpx solid #e8ded2;
+  flex-shrink: 0;
+}
+
+.map-view {
+  width: 100%;
+  height: 100%;
+}
+
+.map-center-marker {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80rpx;
+  height: 80rpx;
+  background: linear-gradient(135deg, #b8d8be 0%, #94c973 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4rpx solid #fff;
+  box-shadow: 0 4rpx 12rpx rgba(148,201,115,0.4);
+  z-index: 2;
+}
+
+.center-icon {
+  font-size: 40rpx;
+}
+
+.map-tip {
+  position: absolute;
+  bottom: 16rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(92,75,55,0.8);
+  color: #fff;
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  z-index: 2;
+}
+
+/* ==================== 当前定位 - 原木风格 ==================== */
+.current-location {
+  display: flex;
+  align-items: center;
+  background: #fffbf5;
+  padding: 20rpx 24rpx;
+  border-bottom: 2rpx dashed #e8ded2;
+  flex-shrink: 0;
+}
+
+.location-icon-wrap {
+  width: 64rpx;
+  height: 64rpx;
+  background: linear-gradient(135deg, #b8d8be 0%, #94c973 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+  font-size: 28rpx;
+  box-shadow: 0 2rpx 6rpx rgba(148,201,115,0.3);
+}
+
+.location-info {
+  flex: 1;
+  min-width: 0;
+  margin-right: 16rpx;
+}
+
+.location-title {
+  font-size: 22rpx;
+  color: #998675;
+  margin-bottom: 4rpx;
+}
+
+.location-address {
+  font-size: 26rpx;
+  color: #5c4b37;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.location-address.loading {
+  color: #94c973;
+}
+
+.refresh-btn {
+  padding: 10rpx 20rpx;
+  background: rgba(184,216,190,0.2);
+  border: 2rpx solid #e8ded2;
+  border-radius: 50rpx;
+  font-size: 22rpx;
+  color: #5c4b37;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.refresh-btn:active {
+  background: rgba(184,216,190,0.4);
+}
+
+.loading-spinner {
+  width: 32rpx;
+  height: 32rpx;
+  border: 3rpx solid #e8ded2;
+  border-top-color: #94c973;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  flex-shrink: 0;
+}
+
+.loading-spinner.large {
+  width: 50rpx;
+  height: 50rpx;
+  margin-bottom: 20rpx;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ==================== 常用地址 ==================== */
+.quick-addresses {
+  background: #fffbf5;
+  padding: 20rpx 24rpx;
+  border-bottom: 2rpx dashed #e8ded2;
+  flex-shrink: 0;
+}
+
+.quick-title {
+  font-size: 22rpx;
+  color: #998675;
+  margin-bottom: 16rpx;
+}
+
+.quick-list {
+  display: flex;
+  gap: 16rpx;
+}
+
+.quick-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 16rpx 24rpx;
+  background: #fff;
+  border: 2rpx solid #e8ded2;
+  border-radius: 16rpx;
+  transition: all 0.2s;
+}
+
+.quick-item:active {
+  transform: scale(0.95);
+  background: rgba(184,216,190,0.15);
+  border-color: #94c973;
+}
+
+.quick-item:active .quick-text {
+  color: #94c973;
+}
+
+.quick-icon {
+  font-size: 32rpx;
+}
+
+.quick-text {
+  font-size: 22rpx;
+  color: #5c4b37;
+}
+
+/* ==================== 搜索结果列表 ==================== */
+.results-list {
+  flex: 1;
+  background: #fff;
+}
+
+.results-header {
+  padding: 16rpx 24rpx;
+  font-size: 22rpx;
+  color: #998675;
+  border-bottom: 1rpx solid #f5f0ea;
+}
+
+.result-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 24rpx;
+  border-bottom: 1rpx solid #f5f0ea;
+  transition: all 0.2s;
+}
+
+.result-item:active {
+  background: rgba(184,216,190,0.1);
+}
+
+.result-icon {
+  width: 40rpx;
+  font-size: 24rpx;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+
+.result-info {
+  flex: 1;
+  min-width: 0;
+  margin-right: 16rpx;
+}
+
+.result-name {
+  font-size: 26rpx;
+  color: #5c4b37;
+  margin-bottom: 4rpx;
+  font-weight: 500;
+}
+
+.result-address {
+  font-size: 22rpx;
+  color: #998675;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-distance {
+  font-size: 22rpx;
+  color: #94c973;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+/* ==================== 搜索中/无结果 ==================== */
+.searching, .no-results {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24rpx;
+  background: #fff;
+}
+
+.searching text {
+  font-size: 24rpx;
+  color: #998675;
+}
+
+.no-results-icon {
+  font-size: 60rpx;
+  margin-bottom: 20rpx;
+}
+
+.no-results-text {
+  font-size: 28rpx;
+  color: #5c4b37;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+
+.no-results-tip {
+  font-size: 24rpx;
+  color: #998675;
+  text-align: center;
+}
+
+/* ==================== 历史记录 ==================== */
+.history-section {
+  flex: 1;
+  background: #fff;
+  padding: 0 24rpx;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f5f0ea;
+}
+
+.history-title {
+  font-size: 22rpx;
+  color: #998675;
+}
+
+.clear-history {
+  font-size: 22rpx;
+  color: #94c973;
+  font-weight: 500;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f5f0ea;
+  transition: all 0.2s;
+}
+
+.history-item:active {
+  background: rgba(184,216,190,0.1);
+}
+
+.history-icon {
+  font-size: 24rpx;
+  width: 40rpx;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+  color: #998675;
+}
+
+.history-info {
+  flex: 1;
+}
+
+.history-name {
+  font-size: 26rpx;
+  color: #5c4b37;
+  margin-bottom: 4rpx;
+  font-weight: 500;
+}
+
+.history-time {
+  font-size: 20rpx;
+  color: #998675;
+}
+
+/* ==================== 确认按钮栏 - 清新底栏 ==================== */
+.confirm-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fffbf5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 32rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  border-top: 2rpx solid #e8ded2;
+  box-shadow: 0 -4rpx 12rpx rgba(139,115,85,0.08);
+  z-index: 10;
+}
+
+.selected-info {
+  flex: 1;
+  min-width: 0;
+  margin-right: 16rpx;
+}
+
+.selected-label {
+  font-size: 22rpx;
+  color: #998675;
+  margin-bottom: 4rpx;
+}
+
+.selected-address {
+  font-size: 26rpx;
+  color: #5c4b37;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.confirm-btn {
+  background: linear-gradient(135deg, #b8d8be 0%, #94c973 100%);
+  color: #fff;
+  padding: 18rpx 36rpx;
+  border-radius: 50rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  border: 2rpx solid #fff;
+  box-shadow:
+    0 4rpx 0 rgba(148,201,115,0.4),
+    0 4rpx 12rpx rgba(148,201,115,0.2);
+  transition: all 0.2s;
+  flex-shrink: 0;
+  letter-spacing: 2rpx;
+}
+
+.confirm-btn:active {
+  transform: translateY(2rpx);
+  box-shadow:
+    0 2rpx 0 rgba(148,201,115,0.4),
+    0 2rpx 6rpx rgba(148,201,115,0.2);
+}

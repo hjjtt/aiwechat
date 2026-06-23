@@ -1,0 +1,36 @@
+server:
+  port: ${SERVER_PORT:9094}
+
+spring:
+  application:
+    name: ai-chat-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:../../.env[.properties]
+      - optional:nacos:shared-config.yaml?group=${NACOS_GROUP:AIWECHAT_GROUP}
+      - optional:nacos:${spring.application.name}.yaml?group=${NACOS_GROUP:AIWECHAT_GROUP}
+      - optional:nacos:${spring.application.name}-${spring.profiles.active}.yaml?group=${NACOS_GROUP:AIWECHAT_GROUP}
+  cloud:
+    nacos:
+      server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
+      discovery:
+        server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
+        namespace: ${NACOS_NAMESPACE:}
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD}
+        group: ${NACOS_GROUP:AIWECHAT_GROUP}
+      config:
+        server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
+        namespace: ${NACOS_NAMESPACE:}
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD}
+        group: ${NACOS_GROUP:AIWECHAT_GROUP}
+        file-extension: yaml
+
+# 知识库服务配置
+knowledge:
+  service:
+    url: ${KNOWLEDGE_SERVICE_URL:http://localhost:9095}

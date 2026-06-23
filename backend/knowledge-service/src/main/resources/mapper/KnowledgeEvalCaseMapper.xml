@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiwechat.knowledge.repository.KnowledgeEvalCaseRepository">
+
+    <resultMap id="BaseResultMap" type="com.aiwechat.knowledge.model.entity.KnowledgeEvalCase">
+        <id column="id" property="id"/>
+        <result column="question" property="question"/>
+        <result column="expected_answer" property="expectedAnswer"/>
+        <result column="expected_source" property="expectedSource"/>
+        <result column="category" property="category"/>
+        <result column="difficulty" property="difficulty"/>
+        <result column="enabled" property="enabled"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT * FROM knowledge_eval_cases WHERE enabled = 1 ORDER BY category, id
+    </select>
+
+    <select id="selectByCategory" resultMap="BaseResultMap">
+        SELECT * FROM knowledge_eval_cases WHERE category = #{category} AND enabled = 1
+    </select>
+
+    <insert id="insert" parameterType="com.aiwechat.knowledge.model.entity.KnowledgeEvalCase" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO knowledge_eval_cases (question, expected_answer, expected_source, category, difficulty, enabled, created_at)
+        VALUES (#{question}, #{expectedAnswer}, #{expectedSource}, #{category}, #{difficulty}, #{enabled}, #{createdAt})
+    </insert>
+
+    <delete id="deleteById">
+        DELETE FROM knowledge_eval_cases WHERE id = #{id}
+    </delete>
+
+</mapper>

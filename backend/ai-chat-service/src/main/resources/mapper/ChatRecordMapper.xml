@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiwechat.aichat.repository.ChatRecordRepository">
+
+    <!-- 结果映射 -->
+    <resultMap id="ChatRecordResultMap" type="com.aiwechat.aichat.model.entity.ChatRecord">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="sessionId" column="session_id"/>
+        <result property="question" column="question"/>
+        <result property="answer" column="answer"/>
+        <result property="sources" column="sources"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="role" column="role"/>
+    </resultMap>
+
+    <!-- 基础字段列表 -->
+    <sql id="Base_Column_List">
+        id, user_id, session_id, question, answer, sources, created_at, role
+    </sql>
+
+    <!-- 插入对话记录 -->
+    <insert id="insert" parameterType="com.aiwechat.aichat.model.entity.ChatRecord" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO chat_records (user_id, session_id, question, answer, sources, created_at, role)
+        VALUES (#{userId}, #{sessionId}, #{question}, #{answer}, #{sources}, #{createdAt}, #{role})
+    </insert>
+
+    <!-- 查询用户的对话历史 -->
+    <select id="findByUserId" resultMap="ChatRecordResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM chat_records
+        WHERE user_id = #{userId}
+        ORDER BY created_at ASC
+    </select>
+
+    <!-- 查询用户某会话的对话历史 -->
+    <select id="findByUserIdAndSessionId" resultMap="ChatRecordResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM chat_records
+        WHERE user_id = #{userId} AND session_id = #{sessionId}
+        ORDER BY created_at ASC
+    </select>
+
+    <!-- 查询最近的对话记录（用于上下文记忆） -->
+    <select id="findRecentByUserId" resultMap="ChatRecordResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM chat_records
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>

@@ -1,0 +1,139 @@
+<view class="container">
+  <!-- 顶部背景 -->
+  <view class="header-bg">
+    <view class="header-pattern"></view>
+  </view>
+
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">{{pageMode === 'edit' ? '编辑地址' : '新增收货地址'}}</text>
+  </view>
+
+  <scroll-view class="address-scroll" scroll-y="true">
+    <!-- 地址选择卡片 -->
+    <view class="address-card" bindtap="chooseLocation">
+      <view class="card-header">
+        <text class="card-icon">📍</text>
+        <text class="card-title">配送地址</text>
+        <text class="card-action">更换 ›</text>
+      </view>
+      
+      <view class="address-display" wx:if="{{deliveryAddress}}">
+        <text class="address-text">{{deliveryAddress}}</text>
+      </view>
+      <view class="address-display empty" wx:else>
+        <text class="address-placeholder">点击获取当前位置</text>
+      </view>
+    </view>
+
+    <!-- 详细地址 -->
+    <view class="detail-card">
+      <view class="form-item">
+        <text class="form-label">详细地址</text>
+        <input
+          class="form-input"
+          placeholder="如：xx小区xx栋xx室"
+          placeholder-class="form-placeholder"
+          value="{{detailAddress}}"
+          bindinput="onDetailAddressInput"
+        />
+      </view>
+    </view>
+
+    <!-- 联系人信息 -->
+    <view class="contact-card">
+      <view class="card-header">
+        <text class="card-icon">👤</text>
+        <text class="card-title">联系人信息</text>
+      </view>
+      
+      <view class="form-item">
+        <text class="form-label">收货人</text>
+        <input
+          class="form-input"
+          placeholder="请输入收货人姓名"
+          placeholder-class="form-placeholder"
+          value="{{contactName}}"
+          bindinput="onNameInput"
+        />
+      </view>
+      
+      <view class="form-item no-border">
+        <text class="form-label">手机号</text>
+        <input
+          class="form-input"
+          type="number"
+          maxlength="11"
+          placeholder="请输入手机号"
+          placeholder-class="form-placeholder"
+          value="{{contactPhone}}"
+          bindinput="onPhoneInput"
+        />
+      </view>
+    </view>
+
+    <!-- 地址标签 -->
+    <view class="label-card">
+      <view class="card-header">
+        <text class="card-icon">🏷️</text>
+        <text class="card-title">地址标签</text>
+      </view>
+      
+      <view class="label-list">
+        <block wx:for="{{labels}}" wx:key="*this">
+          <view
+            class="label-item {{labelIndex === index ? 'active' : ''}}"
+            bindtap="selectLabel"
+            data-index="{{index}}"
+          >
+            <text>{{item}}</text>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- 默认地址开关 -->
+    <view class="default-card">
+      <view class="default-row">
+        <view class="default-left">
+          <text class="default-icon">⭐</text>
+          <text class="default-text">设为默认地址</text>
+        </view>
+        <switch
+          checked="{{isDefault}}"
+          bindchange="toggleDefault"
+          color="#667eea"
+        />
+      </view>
+    </view>
+
+    <!-- 已保存地址 -->
+    <view class="saved-section" wx:if="{{savedAddresses.length > 0 && pageMode === 'add'}}">
+      <view class="section-title">已保存的地址</view>
+      
+      <block wx:for="{{savedAddresses}}" wx:key="id">
+        <view class="saved-item" bindtap="editAddress" data-id="{{item.id}}">
+          <view class="saved-content">
+            <view class="saved-header">
+              <text class="saved-tag" wx:if="{{item.isDefault}}">默认</text>
+              <text class="saved-label">{{item.label}}</text>
+            </view>
+            <view class="saved-info">{{item.contactName}} · {{item.contactPhone}}</view>
+            <view class="saved-address">{{item.address}}{{item.detailAddress ? ' ' + item.detailAddress : ''}}</view>
+          </view>
+          <text class="saved-arrow">›</text>
+        </view>
+      </block>
+    </view>
+
+    <!-- 底部占位 -->
+    <view class="bottom-space"></view>
+  </scroll-view>
+
+  <!-- 底部保存按钮 -->
+  <view class="footer-bar">
+    <view class="save-btn" bindtap="saveAddress">
+      <text>{{pageMode === 'edit' ? '更新地址' : '保存地址'}}</text>
+    </view>
+  </view>
+</view>
