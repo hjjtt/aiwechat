@@ -51,8 +51,8 @@ public class SimpleHumanTransferServiceImpl implements HumanTransferService {
         }
 
         // 2. 检查是否连续多次提问同一问题（用户不满迹象）
-        Integer repeatCount = repeatCountMap.get(userId);
-        if (repeatCount != null && repeatCount >= 3) {
+        int repeatCount = repeatCountMap.merge(userId, 1, Integer::sum);
+        if (repeatCount >= 3) {
             log.info("用户重复提问次数过多: {}", repeatCount);
             return true;
         }
@@ -144,6 +144,6 @@ public class SimpleHumanTransferServiceImpl implements HumanTransferService {
             topicCount++;
         }
 
-        return topicCount >= 2;
+        return topicCount >= 5;
     }
 }

@@ -3,6 +3,7 @@ package com.aiwechat.aichat.service.impl;
 import com.aiwechat.aichat.service.UserPreferenceService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -23,10 +24,11 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserPreferenceServiceImpl implements UserPreferenceService {
 
-    private final RestClient restClient = RestClient.builder().build();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final RestClient restClient;
+    private final ObjectMapper objectMapper;
 
     /** ModelScope API 密钥 */
     @Value("${spring.ai.openai.api-key}")
@@ -135,7 +137,6 @@ public class UserPreferenceServiceImpl implements UserPreferenceService {
                 - "我喜欢辣" = 明确表达偏好
                 - "我不吃辣" = 明确表达忌口
                 - "我一般吃牛肉" = 明确表达喜好
-                - "我不吃辣有什么推荐的吗" = 没有明确偏好，不提取任何内容
                 - "今天吃什么" = 没有偏好，不提取任何内容
 
                 请以JSON格式返回：

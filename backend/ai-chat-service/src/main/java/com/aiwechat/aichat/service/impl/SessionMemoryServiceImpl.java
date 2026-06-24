@@ -2,18 +2,25 @@ package com.aiwechat.aichat.service.impl;
 
 import com.aiwechat.aichat.model.dto.MemoryContext;
 import com.aiwechat.aichat.service.SessionMemoryService;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
+import jakarta.annotation.PostConstruct;
 
 /**
  * 会话记忆管理服务实现
@@ -25,8 +32,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class SessionMemoryServiceImpl implements SessionMemoryService {
 
-    private final RestClient restClient = RestClient.builder().build();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final RestClient restClient;
+    private final ObjectMapper objectMapper;
 
     @Value("${spring.ai.openai.api-key}")
     private String apiKey;
@@ -61,6 +68,19 @@ public class SessionMemoryServiceImpl implements SessionMemoryService {
     /** 近期消息存储：key=userId:sessionId, value=消息列表 */
     private final ConcurrentHashMap<String, List<MessagePair>> recentMessages = new ConcurrentHashMap<>();
 
+    /** 最后访问时间：key=userId:sessionId, value=时间戳 */
+    private final ConcurrentHashMap<String, Long> lastAccessTime = new ConcurrentHashMap<>();
+
+    /** 会话过期时间（毫秒），默认2小时 */
+    @Value("${memory.session.ttl-ms:7200000}")
+    private long sessionTtlMs;
+
+    /** 持久化目录 */
+    @Value("${memory.persistence.dir:./data/memory}")
+    private String persistenceDir;
+
+    private boolean persistenceReady = false;
+
     /**
      * 消息对（一轮对话：用户问 + AI答）
      */
@@ -71,6 +91,7 @@ public class SessionMemoryServiceImpl implements SessionMemoryService {
     @Override
     public MemoryContext getMemoryContext(String userId, String sessionId) {
         String key = buildKey(userId, sessionId);
+        lastAccessTime.put(key, System.currentTimeMillis());
         MemoryContext context = new MemoryContext();
 
         // 第一层：关键事实
@@ -90,6 +111,7 @@ public class SessionMemoryServiceImpl implements SessionMemoryService {
     @Override
     public void saveMessage(String userId, String sessionId, String question, String answer) {
         String key = buildKey(userId, sessionId);
+        lastAccessTime.put(key, System.currentTimeMillis());
 
         // 添加到近期消息
         recentMessages.computeIfAbsent(key, k -> Collections.synchronizedList(new ArrayList<>()))
@@ -127,6 +149,33 @@ public class SessionMemoryServiceImpl implements SessionMemoryService {
         unsummarizedCount.remove(key);
         recentMessages.remove(key);
         log.info("会话记忆已清除 - key: {}", key);
+    }
+
+    /**
+     * 定时清理过期会话（每10分钟执行一次）
+     */
+    @Scheduled(fixedRate = 600000)
+    public void evictExpiredSessions() {
+        long now = System.currentTimeMillis();
+        List<String> expiredKeys = new ArrayList<>();
+
+        for (Map.Entry<String, Long> entry : lastAccessTime.entrySet()) {
+            if (now - entry.getValue() > sessionTtlMs) {
+                expiredKeys.add(entry.getKey());
+            }
+        }
+
+        for (String key : expiredKeys) {
+            factsStore.remove(key);
+            summaryStore.remove(key);
+            unsummarizedCount.remove(key);
+            recentMessages.remove(key);
+            lastAccessTime.remove(key);
+        }
+
+        if (!expiredKeys.isEmpty()) {
+            log.info("清理过期会话: {} 个", expiredKeys.size());
+        }
     }
 
     // ==================== 摘要生成 ====================
@@ -236,6 +285,77 @@ public class SessionMemoryServiceImpl implements SessionMemoryService {
             return newPart;
         }
         return oldPart + " | " + newPart;
+    }
+
+    // ==================== 持久化 ====================
+
+    @PostConstruct
+    void initPersistence() {
+        try {
+            Files.createDirectories(Path.of(persistenceDir));
+            loadFromDisk();
+            persistenceReady = true;
+            log.info("内存持久化初始化完成 - dir: {}", persistenceDir);
+        } catch (Exception e) {
+            log.warn("内存持久化初始化失败: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * 定期持久化到磁盘（每5分钟）
+     */
+    @Scheduled(fixedRate = 300000)
+    public void persistToDisk() {
+        if (!persistenceReady) return;
+        try {
+            Map<String, Object> snapshot = new HashMap<>();
+            snapshot.put("facts", new HashMap<>(factsStore));
+            snapshot.put("summaries", new HashMap<>(summaryStore));
+            Map<String, Object> recentSnapshot = new HashMap<>();
+            for (var entry : recentMessages.entrySet()) {
+                List<Map<String, String>> serialized = entry.getValue().stream()
+                        .map(m -> Map.of("q", m.question(), "a", m.answer(), "t", m.time().toString()))
+                        .toList();
+                recentSnapshot.put(entry.getKey(), serialized);
+            }
+            snapshot.put("recentMessages", recentSnapshot);
+            snapshot.put("timestamp", System.currentTimeMillis());
+
+            Path file = Path.of(persistenceDir, "memory-snapshot.json");
+            Files.writeString(file, objectMapper.writeValueAsString(snapshot));
+        } catch (Exception e) {
+            log.warn("内存持久化失败: {}", e.getMessage());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void loadFromDisk() {
+        Path file = Path.of(persistenceDir, "memory-snapshot.json");
+        if (!Files.exists(file)) return;
+
+        try {
+            Map<String, Object> snapshot = objectMapper.readValue(
+                    Files.readString(file), new TypeReference<>() {});
+
+            Map<String, Map<String, String>> facts = (Map<String, Map<String, String>>) snapshot.get("facts");
+            if (facts != null) facts.forEach((k, v) -> factsStore.put(k, new ConcurrentHashMap<>(v)));
+
+            Map<String, String> summaries = (Map<String, String>) snapshot.get("summaries");
+            if (summaries != null) summaryStore.putAll(summaries);
+
+            Map<String, List<Map<String, String>>> recent = (Map<String, List<Map<String, String>>>) snapshot.get("recentMessages");
+            if (recent != null) {
+                recent.forEach((k, v) -> {
+                    recentMessages.put(k, v.stream()
+                            .map(m -> new MessagePair(m.get("q"), m.get("a"), LocalDateTime.parse(m.get("t"))))
+                            .collect(ArrayList::new, ArrayList::add, ArrayList::addAll));
+                });
+            }
+
+            log.info("从磁盘恢复会话记忆 - {} 个会话", factsStore.size());
+        } catch (Exception e) {
+            log.warn("从磁盘恢复记忆失败: {}", e.getMessage());
+        }
     }
 
     // ==================== 工具方法 ====================

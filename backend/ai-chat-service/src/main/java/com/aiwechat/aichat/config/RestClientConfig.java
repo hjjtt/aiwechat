@@ -10,18 +10,32 @@ import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
 
 /**
  * REST 客户端配置
- * 配置 RestTemplate、RetryTemplate 等 HTTP 调用相关 Bean
+ * 统一管理 RestClient、RestTemplate、RetryTemplate 等 HTTP 调用相关 Bean
  */
 @Slf4j
 @Configuration
 @EnableRetry
 public class RestClientConfig {
+
+    /**
+     * 共享 RestClient Bean（带超时配置，供所有 Service 注入使用）
+     */
+    @Bean
+    public RestClient restClient() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(10000);
+        factory.setReadTimeout(60000);
+        return RestClient.builder()
+                .requestFactory(factory)
+                .build();
+    }
 
     /**
      * 配置 RestTemplate（用于调用 knowledge-service 等远程服务）

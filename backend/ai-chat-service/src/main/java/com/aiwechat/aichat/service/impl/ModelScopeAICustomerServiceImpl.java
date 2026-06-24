@@ -2,12 +2,16 @@ package com.aiwechat.aichat.service.impl;
 
 import com.aiwechat.aichat.model.dto.ChatRequest;
 import com.aiwechat.aichat.model.dto.ChatResponse;
+import com.aiwechat.aichat.model.dto.EnhancedPrompt;
 import com.aiwechat.aichat.model.dto.IntentResult;
 import com.aiwechat.aichat.model.dto.KnowledgeSearchResult;
 import com.aiwechat.aichat.model.dto.MemoryContext;
 import com.aiwechat.aichat.model.entity.ChatRecord;
+import com.aiwechat.aichat.model.entity.OrderSummary;
 import com.aiwechat.aichat.repository.ChatRecordRepository;
+import com.aiwechat.aichat.repository.OrderSummaryRepository;
 import com.aiwechat.aichat.service.AICustomerService;
+import com.aiwechat.aichat.service.ChatRecordService;
 import com.aiwechat.aichat.service.HumanTransferService;
 import com.aiwechat.aichat.service.IntentRecognitionService;
 import com.aiwechat.aichat.service.KnowledgeBaseService;
@@ -33,6 +37,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -47,13 +53,15 @@ import java.util.stream.Collectors;
 public class ModelScopeAICustomerServiceImpl implements AICustomerService {
 
     private final ChatRecordRepository chatRecordRepository;
+    private final ChatRecordService chatRecordService;
+    private final OrderSummaryRepository orderSummaryRepository;
     private final HumanTransferService humanTransferService;
     private final UserPreferenceService userPreferenceService;
     private final KnowledgeBaseService knowledgeBaseService;
     private final IntentRecognitionService intentRecognitionService;
     private final SessionMemoryService sessionMemoryService;
-    private final RestClient restClient = RestClient.builder().build();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final RestClient restClient;
+    private final ObjectMapper objectMapper;
 
     @Value("${spring.ai.openai.api-key}")
     private String apiKey;
@@ -64,7 +72,7 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
     @Value("${spring.ai.openai.chat.options.model}")
     private String model;
 
-    @Value("${spring.ai.openai.models:qwen/Qwen3-1.7B}")
+    @Value("${spring.ai.openai.models:stepfun-ai/Step-3.7-Flash}")
     private List<String> models;
 
     @Value("${spring.servlet.multipart.location:./uploaded}")
@@ -72,6 +80,10 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
 
     @Value("${spring.ai.openai.model-index:0}")
     private int modelIndex;
+
+    /** 最大 Prompt 长度（字符数），超出则截断历史上下文 */
+    @Value("${chat.prompt.max-chars:4000}")
+    private int maxPromptChars;
 
     @Value("${chat.history.limit:10}")
     private int chatHistoryLimit;
@@ -111,58 +123,86 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
 
         log.info("处理用户问题 - userId: {}, sessionId: {}, question: {}", userId, sessionId, question);
 
-        // ========== 1. 意图识别 ==========
-        IntentResult intent = null;
-        if (images == null || images.isEmpty()) {
+        // ========== 1. 并行执行：意图识别 + RAG 知识库检索 ==========
+        final String history = sessionMemoryService.getMemoryContext(userId, sessionId).toPromptText();
+
+        CompletableFuture<IntentResult> intentFuture = CompletableFuture.supplyAsync(() -> {
+            if (images != null && !images.isEmpty()) return null;
             try {
-                intent = intentRecognitionService.recognize(userId, question);
-                log.info("意图识别结果 - intents: {}, confidence: {}, slots: {}",
-                        intent.getIntents(), intent.getConfidence(), intent.getSlots());
+                return intentRecognitionService.recognize(userId, question,
+                        history.isEmpty() ? null : history);
             } catch (Exception e) {
                 log.warn("意图识别失败，使用默认意图: {}", e.getMessage());
+                return null;
             }
-        }
+        });
 
-        // ========== 2. RAG 知识库检索 ==========
-        KnowledgeSearchResult searchResult = null;
-        List<String> sources = new ArrayList<>();
-
-        if (images == null || images.isEmpty()) {
+        CompletableFuture<KnowledgeSearchResult> ragFuture = CompletableFuture.supplyAsync(() -> {
+            if (images != null && !images.isEmpty()) return null;
             try {
-                searchResult = knowledgeBaseService.search(question, 3);
-                if (searchResult != null && searchResult.getResults() != null && !searchResult.getResults().isEmpty()) {
-                    log.info("RAG 检索到 {} 条相关知识", searchResult.getResults().size());
-                    sources = searchResult.getResults().stream()
-                            .map(KnowledgeSearchResult.ChunkResult::getSource)
-                            .distinct()
-                            .collect(Collectors.toList());
-                }
+                return knowledgeBaseService.search(question, 3);
             } catch (Exception e) {
                 log.warn("RAG 检索失败，使用通用知识", e);
+                return null;
+            }
+        });
+
+        IntentResult intent;
+        KnowledgeSearchResult searchResult;
+        List<String> sources = new ArrayList<>();
+        try {
+            intent = intentFuture.get(15, TimeUnit.SECONDS);
+            searchResult = ragFuture.get(10, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            log.warn("并行任务超时或失败: {}", e.getMessage());
+            intent = null;
+            searchResult = null;
+        }
+
+        if (intent != null) {
+            log.info("意图识别结果 - intents: {}, confidence: {}, slots: {}",
+                    intent.getIntents(), intent.getConfidence(), intent.getSlots());
+        }
+
+        if (searchResult != null && searchResult.getResults() != null && !searchResult.getResults().isEmpty()) {
+            log.info("RAG 检索到 {} 条相关知识", searchResult.getResults().size());
+            sources = searchResult.getResults().stream()
+                    .map(KnowledgeSearchResult.ChunkResult::getSource)
+                    .distinct()
+                    .collect(Collectors.toList());
+        }
+
+        // ========== 2.5. 查询用户真实订单数据（用于订单相关问题的精准回答） ==========
+        List<OrderSummary> userOrders = null;
+        if (intent != null && (intent.hasIntent("order_inquiry") || intent.hasIntent("order_cancel")
+                || intent.hasIntent("delivery_inquiry") || intent.hasIntent("refund"))) {
+            try {
+                Long uid = Long.parseLong(userId);
+                userOrders = orderSummaryRepository.findRecentByUserId(uid, 10);
+                log.info("查询到用户 {} 的 {} 条真实订单", userId, userOrders.size());
+            } catch (Exception e) {
+                log.warn("查询用户订单失败: {}", e.getMessage());
             }
         }
 
-        // ========== 3. 获取三层记忆上下文 ==========
-        MemoryContext memory = sessionMemoryService.getMemoryContext(userId, sessionId);
-
-        // ========== 4. 更新关键事实（从意图识别的槽位中提取） ==========
+        // ========== 3. 更新关键事实（从意图识别的槽位中提取） ==========
         if (intent != null && intent.getSlots() != null && !intent.getSlots().isEmpty()) {
-            // 过滤掉 null 和空值的槽位
             Map<String, String> validSlots = intent.getSlots().entrySet().stream()
                     .filter(e -> e.getValue() != null && !e.getValue().isEmpty())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             if (!validSlots.isEmpty()) {
                 sessionMemoryService.updateFacts(userId, sessionId, validSlots);
-                // 重新获取更新后的记忆
-                memory = sessionMemoryService.getMemoryContext(userId, sessionId);
             }
         }
 
+        // ========== 4. 获取三层记忆上下文（在事实更新后一次性获取） ==========
+        MemoryContext memory = sessionMemoryService.getMemoryContext(userId, sessionId);
+
         // ========== 5. 构建增强 Prompt ==========
-        String fullPrompt = buildEnhancedPrompt(question, request, intent, searchResult, memory);
+        EnhancedPrompt prompt = buildEnhancedPrompt(question, request, intent, searchResult, memory, userOrders);
 
         // ========== 6. 调用 LLM ==========
-        String aiReply = callModelScopeApi(fullPrompt, images);
+        String aiReply = callModelScopeApi(prompt, images);
 
         // ========== 7. 保存到三层记忆 ==========
         sessionMemoryService.saveMessage(userId, sessionId, question, aiReply);
@@ -172,23 +212,25 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
         if (shouldTransfer) {
             log.info("检测到需要转人工 - userId: {}", userId);
             HumanTransferService.TransferResult result = humanTransferService.transferToHuman(userId, sessionId, question);
-            saveChatRecord(userId, sessionId, question, aiReply);
-            extractUserPreferences(userId, question);
+            chatRecordService.saveChatRecord(userId, sessionId, question, aiReply, sources);
+            // TODO: 偏好存储尚未实现，暂时关闭减少LLM调用
+            // extractUserPreferences(userId, question);
             return new ChatResponse(result.message(), sources.isEmpty() ? List.of("通用知识") : sources, sessionId);
         }
 
-        // ========== 9. 保存对话记录 + 提取偏好 ==========
-        saveChatRecord(userId, sessionId, question, aiReply);
-        extractUserPreferences(userId, question);
+        // ========== 9. 保存对话记录 ==========
+        chatRecordService.saveChatRecord(userId, sessionId, question, aiReply, sources);
+        // TODO: 偏好存储尚未实现，暂时关闭减少LLM调用
+        // extractUserPreferences(userId, question);
         return new ChatResponse(aiReply, sources.isEmpty() ? List.of("通用知识") : sources, sessionId);
     }
 
     /**
      * 构建增强 Prompt（意图路由 + RAG + 三层记忆）
      */
-    private String buildEnhancedPrompt(String question, ChatRequest request,
+    private EnhancedPrompt buildEnhancedPrompt(String question, ChatRequest request,
                                         IntentResult intent, KnowledgeSearchResult searchResult,
-                                        MemoryContext memory) {
+                                        MemoryContext memory, List<OrderSummary> userOrders) {
         // 1. 根据意图选择 System Prompt
         String intentType = intent != null ? intent.getPrimaryIntent() : "general";
         String systemPrompt = PromptRouter.getSystemPrompt(intentType);
@@ -208,43 +250,36 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
         // 5. 获取记忆文本（三层：Facts + Summary + Recent）
         String memoryText = memory != null ? memory.toPromptText() : "";
 
-        return String.format("""
-                %s
+        // 6. 构建用户真实订单上下文
+        String orderContext = buildOrderContext(userOrders);
 
-                【当前时间信息】
-                - 日期：%s
-                - 星期：%s
-                - 时间：%s
+        // 7. Prompt 长度守卫：确保不超过模型上下文窗口
+        int baseLen = systemPrompt.length() + question.length() + 500;
+        int available = maxPromptChars - baseLen;
+        if (available < 500) available = 500;
+        ragContext = truncateText(ragContext, available / 2);
+        memoryText = truncateText(memoryText, available - ragContext.length());
 
-                重要规则：
-                - 如果用户询问时间、日期、星期等问题，必须以上述【当前时间信息】为准。
-                - 如果用户询问"贺锦天"是谁，统一回答：贺锦天是我们的老板/负责人。
-                - 优先使用【相关知识库内容】中的信息回答，如果知识库有相关内容必须基于知识库作答。
-                - 如果知识库内容与问题无关或为空，使用通用知识回答。
-                - 如果记忆中有关键事实（订单号、地址等），优先使用记忆中的信息。
-
-                %s
-
-                %s
-
-                %s
-
-                %s
-
-                用户最新提问：%s
-
-                请按照以下要求生成回复：
-                1. 语气与风格：保持热情、耐心、简洁。使用口语化表达。
-                2. 结构化：如果问题涉及多个方面，请分点说明。
-                3. 准确性：根据用户信息和记忆进行个性化回复。涉及日期时间的问题必须使用上述时间信息。
-                4. 行动引导：在回答末尾，根据问题自然引导用户下一步操作。
-                5. 格式：直接输出纯文本，不要使用 Markdown，项目符号等任何格式符号。
-
-                现在，请开始你的回答：
-                """, systemPrompt, currentDate, dayOfWeek, currentTime,
-                ragContext, userInfo, memoryText,
+        return new EnhancedPrompt(systemPrompt, String.format(
+                "【当前时间信息】\n- 日期：%s\n- 星期：%s\n- 时间：%s\n\n" +
+                "重要规则：\n" +
+                "- 如果用户询问时间、日期、星期等问题，必须以上述【当前时间信息】为准。\n" +
+                "- 如果用户询问\"贺锦天\"是谁，统一回答：贺锦天是我们的老板/负责人。\n" +
+                "- 优先使用【相关知识库内容】中的信息回答，如果知识库有相关内容必须基于知识库作答。\n" +
+                "- 如果知识库内容与问题无关或为空，使用通用知识回答。\n" +
+                "- 如果记忆中有关键事实（订单号、地址等），优先使用记忆中的信息。\n" +
+                "- 如果用户询问订单状态，必须以【用户真实订单数据】为准。\n\n" +
+                "%s\n\n%s\n\n%s\n\n%s\n\n%s\n\n用户最新提问：%s\n\n" +
+                "请按照以下要求生成回复：\n" +
+                "1. 语气与风格：保持热情、耐心、简洁。使用口语化表达。\n" +
+                "2. 如果问题涉及多个方面，请分点说明。\n" +
+                "3. 准确性：根据用户信息和记忆进行个性化回复。订单信息必须以【用户真实订单数据】为准。\n" +
+                "4. 行动引导：在回答末尾，根据问题自然引导用户下一步操作。\n" +
+                "5. 格式：直接输出纯文本，不要使用 Markdown。\n\n现在，请开始你的回答：",
+                currentDate, dayOfWeek, currentTime,
+                ragContext, userInfo, orderContext, memoryText,
                 memoryText.isEmpty() ? "（暂无对话记忆）" : "",
-                question);
+                question));
     }
 
     /**
@@ -327,6 +362,40 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
         return hasInfo ? userInfo.toString() : "（暂无用户信息）";
     }
 
+    /**
+     * 构建用户真实订单上下文（从数据库查询）
+     */
+    private String buildOrderContext(List<OrderSummary> userOrders) {
+        if (userOrders == null || userOrders.isEmpty()) {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("【用户真实订单数据】\n");
+        sb.append("以下是该用户在数据库中的全部真实订单（按时间倒序），订单状态必须以下述真实数据为准：\n\n");
+
+        for (int i = 0; i < userOrders.size(); i++) {
+            OrderSummary order = userOrders.get(i);
+            sb.append(String.format("订单%d：编号=%s, 状态=%s, 金额=%.2f元, 收货人=%s, 电话=%s, 地址=%s, 下单时间=%s\n",
+                    i + 1,
+                    order.getOrderNumber(),
+                    order.getStatus(),
+                    order.getTotalAmount(),
+                    order.getContactName() != null ? order.getContactName() : "未知",
+                    order.getContactPhone() != null ? order.getContactPhone() : "未知",
+                    order.getDeliveryAddress() != null ? order.getDeliveryAddress() : "未知",
+                    order.getCreatedAt() != null ? order.getCreatedAt().toString().substring(0, 19) : "未知"));
+        }
+
+        sb.append("\n注意：回答用户关于订单的任何问题时，必须以以上真实订单数据为准，如实告知。如果用户没有订单，告知用户暂无订单。");
+        return sb.toString();
+    }
+
+    private String truncateText(String text, int maxLen) {
+        if (text == null || text.length() <= maxLen || maxLen <= 0) return text;
+        return text.substring(0, maxLen) + "\n...(内容过长已截断)";
+    }
+
     private String getDayOfWeekChinese(LocalDateTime now) {
         return switch (now.getDayOfWeek()) {
             case MONDAY -> "星期一";
@@ -342,15 +411,15 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
     /**
      * 调用 ModelScope API（多模型轮询）
      */
-    private String callModelScopeApi(String prompt, List<String> images) {
+    private String callModelScopeApi(EnhancedPrompt prompt, List<String> images) {
         if (models == null || models.isEmpty()) {
-            models = List.of("qwen/Qwen3-1.7B", "ZhipuAI/GLM-4.7-Flash");
+            models = List.of("stepfun-ai/Step-3.7-Flash", "ZhipuAI/GLM-4.7-Flash");
         }
 
         String lastError = "";
 
         if (images != null && !images.isEmpty()) {
-            return callModelScopeApiWithImage(prompt, images);
+            return callModelScopeApiWithImage(prompt.userPrompt(), images);
         }
 
         int maxRetries = models.size();
@@ -365,10 +434,14 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
                 requestBody.put("model", currentModel);
 
                 List<Object> messages = new ArrayList<>();
+                Map<String, Object> systemMessage = new HashMap<>();
+                systemMessage.put("role", "system");
+                systemMessage.put("content", prompt.systemPrompt());
+                messages.add(systemMessage);
+
                 Map<String, Object> userMessage = new HashMap<>();
                 userMessage.put("role", "user");
-                userMessage.put("content", prompt);
-
+                userMessage.put("content", prompt.userPrompt());
                 messages.add(userMessage);
                 requestBody.put("messages", messages);
                 requestBody.put("stream", false);
@@ -560,30 +633,6 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
     @Override
     public boolean shouldTransferToHuman(String userId, String question, String aiResponse) {
         return humanTransferService.shouldTransfer(userId, question, aiResponse);
-    }
-
-    @Transactional
-    @CacheEvict(value = "chatHistory", key = "#userId")
-    public void saveChatRecord(String userId, String sessionId, String question, String answer) {
-        LocalDateTime now = LocalDateTime.now();
-
-        ChatRecord userRecord = new ChatRecord();
-        userRecord.setUserId(userId);
-        userRecord.setSessionId(sessionId);
-        userRecord.setQuestion(question);
-        userRecord.setAnswer(null);
-        userRecord.setRole("user");
-        userRecord.setCreatedAt(now);
-        chatRecordRepository.insert(userRecord);
-
-        ChatRecord assistantRecord = new ChatRecord();
-        assistantRecord.setUserId(userId);
-        assistantRecord.setSessionId(sessionId);
-        assistantRecord.setQuestion(null);
-        assistantRecord.setAnswer(answer);
-        assistantRecord.setRole("assistant");
-        assistantRecord.setCreatedAt(now.plusSeconds(1));
-        chatRecordRepository.insert(assistantRecord);
     }
 
     private void extractUserPreferences(String userId, String question) {

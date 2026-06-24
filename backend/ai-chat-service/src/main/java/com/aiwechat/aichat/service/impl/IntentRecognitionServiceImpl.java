@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,8 +26,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class IntentRecognitionServiceImpl implements IntentRecognitionService {
 
-    private final RestClient restClient = RestClient.builder().build();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final RestClient restClient;
+    private final ObjectMapper objectMapper;
 
     @Value("${spring.ai.openai.api-key}")
     private String apiKey;
@@ -61,14 +62,24 @@ public class IntentRecognitionServiceImpl implements IntentRecognitionService {
 
     @Override
     public IntentResult recognize(String userId, String question) {
+        return recognize(userId, question, null);
+    }
+
+    @Override
+    public IntentResult recognize(String userId, String question, String conversationHistory) {
         try {
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("model", model);
 
-            List<Map<String, String>> messages = List.of(
-                    Map.of("role", "system", "content", INTENT_PROMPT),
-                    Map.of("role", "user", "content", question)
-            );
+            List<Map<String, String>> messages = new ArrayList<>();
+            messages.add(Map.of("role", "system", "content", INTENT_PROMPT));
+
+            if (conversationHistory != null && !conversationHistory.isEmpty()) {
+                messages.add(Map.of("role", "user", "content",
+                        "最近的对话历史：\n" + conversationHistory + "\n\n当前问题：" + question));
+            } else {
+                messages.add(Map.of("role", "user", "content", question));
+            }
             requestBody.put("messages", messages);
             requestBody.put("stream", false);
             requestBody.put("enable_thinking", false);
@@ -124,17 +135,19 @@ public class IntentRecognitionServiceImpl implements IntentRecognitionService {
             return defaultIntent();
         }
 
-        content = content.trim();
-        // 去掉 markdown 代码块包裹
-        if (content.startsWith("```json")) {
-            content = content.substring(7);
-        } else if (content.startsWith("```")) {
-            content = content.substring(3);
+        content = content.strip();
+        if (content.startsWith("```")) {
+            int start = content.indexOf('\n');
+            if (start > 0) {
+                content = content.substring(start + 1);
+            } else {
+                content = content.substring(3);
+            }
         }
         if (content.endsWith("```")) {
             content = content.substring(0, content.length() - 3);
         }
-        content = content.trim();
+        content = content.strip();
 
         try {
             return objectMapper.readValue(content, IntentResult.class);

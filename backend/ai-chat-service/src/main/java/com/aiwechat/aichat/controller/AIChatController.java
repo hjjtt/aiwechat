@@ -3,11 +3,13 @@ package com.aiwechat.aichat.controller;
 import com.aiwechat.aichat.model.dto.ChatRequest;
 import com.aiwechat.aichat.model.dto.ChatResponse;
 import com.aiwechat.aichat.service.AICustomerService;
+import com.aiwechat.aichat.service.ContentSafetyFilter;
 import com.aiwechat.common.util.UserContextHelper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -27,6 +30,10 @@ import java.util.UUID;
 public class AIChatController {
 
     private final AICustomerService aiCustomerService;
+    private final ContentSafetyFilter safetyFilter;
+
+    @Value("${spring.servlet.multipart.location:./uploads}")
+    private String uploadDir;
 
     private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
             "image/jpeg", "image/png", "image/gif", "image/webp");
@@ -42,6 +49,12 @@ public class AIChatController {
         request.setUserId(String.valueOf(userId));
 
         log.info("收到提问请求 - userId: {}, question: {}", userId, request.getQuestion());
+
+        if (!safetyFilter.isSafe(request.getQuestion())) {
+            ChatResponse blocked = new ChatResponse("抱歉，您的消息包含不适当的内容，暂时无法处理。",
+                    List.of(), "");
+            return ResponseEntity.badRequest().body(blocked);
+        }
 
         ChatResponse response = aiCustomerService.handleUserQuery(request);
         return ResponseEntity.ok(response);
@@ -102,7 +115,7 @@ public class AIChatController {
         }
 
         try {
-            Path uploadPath = Paths.get(System.getProperty("user.dir"), "uploaded", "chat-images");
+            Path uploadPath = Paths.get(uploadDir, "chat-images");
 
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);

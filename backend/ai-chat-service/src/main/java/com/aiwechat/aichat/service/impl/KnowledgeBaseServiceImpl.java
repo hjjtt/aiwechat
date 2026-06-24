@@ -4,6 +4,7 @@ import com.aiwechat.aichat.model.dto.KnowledgeSearchResult;
 import com.aiwechat.aichat.service.KnowledgeBaseService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -22,6 +23,7 @@ import java.util.Map;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
 
     private final RestClient restClient;
@@ -29,12 +31,6 @@ public class KnowledgeBaseServiceImpl implements KnowledgeBaseService {
 
     @Value("${knowledge.service.url:http://localhost:9095}")
     private String knowledgeServiceUrl;
-
-    public KnowledgeBaseServiceImpl() {
-        this.restClient = RestClient.builder()
-                .build();
-        this.objectMapper = new ObjectMapper();
-    }
 
     @Override
     public List<String> uploadDocument(MultipartFile file, String metadata) {
