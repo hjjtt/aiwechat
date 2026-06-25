@@ -48,9 +48,10 @@ public class AdminMenuServiceImpl implements AdminMenuService {
         int available = menuItemRepository.countAvailable();
         int categoryCount = menuItemRepository.countCategories();
         Map<String, Object> stats = new HashMap<>();
-        stats.put("total", total);
-        stats.put("available", available);
-        stats.put("categoryCount", categoryCount);
+        stats.put("totalItems", total);
+        stats.put("availableItems", available);
+        stats.put("soldOutItems", total - available);
+        stats.put("totalCategories", categoryCount);
         return stats;
     }
 
