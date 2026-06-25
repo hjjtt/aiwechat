@@ -82,7 +82,6 @@ public class IntentRecognitionServiceImpl implements IntentRecognitionService {
             }
             requestBody.put("messages", messages);
             requestBody.put("stream", false);
-            requestBody.put("enable_thinking", false);
 
             String responseJson = restClient.post()
                     .uri(baseUrl + "/chat/completions")
@@ -111,7 +110,7 @@ public class IntentRecognitionServiceImpl implements IntentRecognitionService {
             if (responseMap.containsKey("choices")) {
                 @SuppressWarnings("unchecked")
                 List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
-                if (!choices.isEmpty()) {
+                if (choices != null && !choices.isEmpty()) {
                     Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
                     String content = (String) message.get("content");
                     return extractJsonFromContent(content);

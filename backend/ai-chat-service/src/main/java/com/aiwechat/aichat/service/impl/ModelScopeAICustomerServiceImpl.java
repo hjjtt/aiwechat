@@ -26,6 +26,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
@@ -72,7 +73,7 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
     @Value("${spring.ai.openai.chat.options.model}")
     private String model;
 
-    @Value("${spring.ai.openai.models:stepfun-ai/Step-3.7-Flash}")
+    @Value("${spring.ai.openai.models:deepseek-ai/DeepSeek-V4-Flash}")
     private List<String> models;
 
     @Value("${spring.servlet.multipart.location:./uploaded}")
@@ -413,7 +414,7 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
      */
     private String callModelScopeApi(EnhancedPrompt prompt, List<String> images) {
         if (models == null || models.isEmpty()) {
-            models = List.of("stepfun-ai/Step-3.7-Flash", "ZhipuAI/GLM-4.7-Flash");
+            models = List.of("deepseek-ai/DeepSeek-V4-Flash");
         }
 
         String lastError = "";
@@ -425,7 +426,7 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
         int maxRetries = models.size();
 
         for (int attempt = 0; attempt < maxRetries; attempt++) {
-            String currentModel = models.get(currentModelIndex);
+            String currentModel = models.get(attempt % models.size());
 
             try {
                 log.debug("尝试模型: {}, 第{}次请求", currentModel, attempt + 1);
@@ -445,7 +446,6 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
                 messages.add(userMessage);
                 requestBody.put("messages", messages);
                 requestBody.put("stream", false);
-                requestBody.put("enable_thinking", false);
 
                 String responseJson = restClient.post()
                         .uri(baseUrl + "/chat/completions")
@@ -460,7 +460,7 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
                 if (responseMap.containsKey("choices")) {
                     @SuppressWarnings("unchecked")
                     List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
-                    if (!choices.isEmpty()) {
+                    if (choices != null && !choices.isEmpty()) {
                         Map<String, Object> choice = choices.get(0);
                         if (choice.containsKey("message")) {
                             @SuppressWarnings("unchecked")
@@ -475,9 +475,13 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
                     }
                 }
 
-                log.warn("模型 {} 响应格式异常，尝试下一个模型", currentModel);
+                log.warn("模型 {} 响应格式异常，响应体: {}", currentModel, responseJson.length() > 300 ? responseJson.substring(0, 300) : responseJson);
                 lastError = "响应格式异常";
 
+            } catch (HttpClientErrorException e) {
+                String body = e.getResponseBodyAsString();
+                log.warn("模型 {} 调用失败: HTTP {} - {}", currentModel, e.getStatusCode(), body);
+                lastError = "HTTP " + e.getStatusCode() + ": " + (body != null ? body : e.getMessage());
             } catch (Exception e) {
                 log.warn("模型 {} 调用失败: {}", currentModel, e.getMessage());
                 lastError = e.getMessage();
@@ -542,7 +546,7 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
             if (responseMap.containsKey("choices")) {
                 @SuppressWarnings("unchecked")
                 List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
-                if (!choices.isEmpty()) {
+                if (choices != null && !choices.isEmpty()) {
                     Map<String, Object> choice = choices.get(0);
                     if (choice.containsKey("message")) {
                         @SuppressWarnings("unchecked")

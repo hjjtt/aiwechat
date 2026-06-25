@@ -85,7 +85,6 @@ public class UserPreferenceServiceImpl implements UserPreferenceService {
 
             requestBody.put("messages", messages);
             requestBody.put("stream", false);
-            requestBody.put("enable_thinking", false);
 
             String responseJson = restClient.post()
                     .uri(baseUrl + "/chat/completions")
@@ -100,7 +99,7 @@ public class UserPreferenceServiceImpl implements UserPreferenceService {
             if (responseMap.containsKey("choices")) {
                 @SuppressWarnings("unchecked")
                 List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
-                if (!choices.isEmpty()) {
+                if (choices != null && !choices.isEmpty()) {
                     Map<String, Object> choice = choices.get(0);
                     if (choice.containsKey("message")) {
                         @SuppressWarnings("unchecked")

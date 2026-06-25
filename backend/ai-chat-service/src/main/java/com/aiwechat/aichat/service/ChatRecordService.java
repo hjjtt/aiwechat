@@ -5,7 +5,6 @@ import com.aiwechat.aichat.repository.ChatRecordRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +20,6 @@ public class ChatRecordService {
     private final ObjectMapper objectMapper;
 
     @Transactional
-    @CacheEvict(value = "chatHistory", key = "#userId")
     public void saveChatRecord(String userId, String sessionId, String question, String answer, List<String> sources) {
         LocalDateTime now = LocalDateTime.now();
 

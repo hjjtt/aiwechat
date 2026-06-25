@@ -247,7 +247,6 @@ public class SessionMemoryServiceImpl implements SessionMemoryService {
             );
             requestBody.put("messages", messages);
             requestBody.put("stream", false);
-            requestBody.put("enable_thinking", false);
 
             String responseJson = restClient.post()
                     .uri(baseUrl + "/chat/completions")
