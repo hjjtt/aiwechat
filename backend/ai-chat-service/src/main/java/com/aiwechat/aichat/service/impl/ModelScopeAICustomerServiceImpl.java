@@ -89,6 +89,10 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
     @Value("${chat.history.limit:10}")
     private int chatHistoryLimit;
 
+    /** 单模型重试次数（含首次），覆盖瞬时抖动；多模型时取 max(models.size(), 此值) */
+    @Value("${chat.max-retries:3}")
+    private int chatMaxRetries;
+
     private int currentModelIndex = 0;
 
     @PostConstruct
@@ -414,7 +418,7 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
      */
     private String callModelScopeApi(EnhancedPrompt prompt, List<String> images) {
         if (models == null || models.isEmpty()) {
-            models = List.of("deepseek-ai/DeepSeek-V4-Flash");
+            models = List.of("mimo-v2.5");
         }
 
         String lastError = "";
@@ -423,10 +427,20 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
             return callModelScopeApiWithImage(prompt.userPrompt(), images);
         }
 
-        int maxRetries = models.size();
+        int maxRetries = Math.max(models.size(), chatMaxRetries);
 
         for (int attempt = 0; attempt < maxRetries; attempt++) {
             String currentModel = models.get(attempt % models.size());
+
+            // 重试退避：非首次请求前等待，缓解限流/网络瞬时抖动
+            if (attempt > 0) {
+                try {
+                    Thread.sleep(800L * attempt);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
 
             try {
                 log.debug("尝试模型: {}, 第{}次请求", currentModel, attempt + 1);
@@ -446,6 +460,8 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
                 messages.add(userMessage);
                 requestBody.put("messages", messages);
                 requestBody.put("stream", false);
+                // MiMo: 禁用推理模式（thinking），加速响应、降低 token 消耗
+                requestBody.put("thinking", Map.of("type", "disabled"));
 
                 String responseJson = restClient.post()
                         .uri(baseUrl + "/chat/completions")
@@ -498,7 +514,7 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
      * 调用 ModelScope 视觉模型（图片识别）
      */
     private String callModelScopeApiWithImage(String prompt, List<String> images) {
-        String visionModel = "moonshotai/Kimi-K2.5";
+        String visionModel = "mimo-v2.5";
         log.info("检测到图片，使用视觉模型: {}", visionModel);
 
         try {
@@ -532,6 +548,7 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
             messages.add(userMessage);
             requestBody.put("messages", messages);
             requestBody.put("stream", false);
+            requestBody.put("thinking", Map.of("type", "disabled"));
 
             String responseJson = restClient.post()
                     .uri(baseUrl + "/chat/completions")

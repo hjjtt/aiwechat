@@ -24,6 +24,7 @@ spring:
     openai:
       api-key: ${MODELSCOPE_API_KEY}
       base-url: ${AI_BASE_URL}
+      models: ${AI_MODELS:mimo-v2.5}
       chat:
         options:
           model: ${AI_MODEL}
