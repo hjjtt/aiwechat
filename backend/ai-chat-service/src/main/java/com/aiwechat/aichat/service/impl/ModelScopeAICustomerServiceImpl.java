@@ -73,7 +73,7 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
     @Value("${spring.ai.openai.chat.options.model}")
     private String model;
 
-    @Value("${spring.ai.openai.models:deepseek-ai/DeepSeek-V4-Flash}")
+    @Value("${spring.ai.openai.models:mimo-v2.5}")
     private List<String> models;
 
     @Value("${spring.servlet.multipart.location:./uploaded}")
