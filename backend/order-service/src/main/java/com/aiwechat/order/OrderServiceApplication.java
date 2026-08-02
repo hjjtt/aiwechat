@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * 订单服务启动类
  */
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.aiwechat.order", "com.aiwechat.common"})
 @MapperScan("com.aiwechat.order.repository")
 public class OrderServiceApplication {
 

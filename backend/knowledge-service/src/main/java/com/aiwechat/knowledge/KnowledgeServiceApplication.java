@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * 知识库服务启动类
  * 负责文档管理、向量检索、RAG支持等功能
  */
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.aiwechat.knowledge", "com.aiwechat.common"})
 @EnableDiscoveryClient
 @EnableScheduling
 @MapperScan("com.aiwechat.knowledge.repository")

@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * 管理后台微服务启动类
  */
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.aiwechat.admin", "com.aiwechat.common"})
 @MapperScan("com.aiwechat.admin.repository")
 public class AdminServiceApplication {
 

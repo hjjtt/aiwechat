@@ -636,7 +636,6 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
     }
 
     @Override
-    @Cacheable(value = "chatHistory", key = "#userId", unless = "#result.isEmpty()")
     public String getChatHistory(String userId) {
         List<ChatRecord> recentRecords = chatRecordRepository.findRecentByUserId(userId, chatHistoryLimit);
 

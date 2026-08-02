@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * 菜品服务启动类
  */
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.aiwechat.menu", "com.aiwechat.common"})
 @MapperScan("com.aiwechat.menu.repository")
 public class MenuServiceApplication {
 

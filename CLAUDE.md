@@ -44,7 +44,7 @@ Controller -> Service -> Repository -> Database
 - `common-core` — shared DTOs (`CommonResponse`, `UserContext`), exceptions, JWT util, interceptors. **Dependency for all services** (install to .m2 before running any service).
 - `api-gateway` (9000) — Spring Cloud Gateway. `AuthTokenRelayFilter` validates token via auth-service and injects `X-User-Id`/`X-Open-Id`/`X-User-Nickname` headers for downstream services.
 - `auth-service` (9091) — WeChat OAuth login, token issuance (72h expiry).
-- `menu-service` (9092) — menu CRUD, favorites, image upload.
+- `menu-service` (9093) — menu CRUD, favorites, image upload.
 - `order-service` — orders + user addresses. Status flow: `pending` -> `confirmed` -> `preparing` -> `delivering` -> `completed` (or `cancelled`).
 - `ai-chat-service` (9094) — AI chat, intent recognition, session memory, content safety. **See AI Chat Service below.**
 - `knowledge-service` (9095) — RAG: LazyGraphRAG, hybrid search, query routing, eval, multi-strategy chunking (FAQ/Menu/Rule/Generic).
