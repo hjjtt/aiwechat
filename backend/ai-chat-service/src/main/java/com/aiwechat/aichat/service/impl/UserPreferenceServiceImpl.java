@@ -85,6 +85,7 @@ public class UserPreferenceServiceImpl implements UserPreferenceService {
 
             requestBody.put("messages", messages);
             requestBody.put("stream", false);
+            requestBody.put("thinking", Map.of("type", "disabled"));
 
             String responseJson = restClient.post()
                     .uri(baseUrl + "/chat/completions")

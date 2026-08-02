@@ -73,16 +73,19 @@ Must be a Base64-encoded string of at least 32 raw bytes. The current key at `co
 
 ## AI Chat Service Critical Facts
 
-### ModelScope API behavior
+### MiMo (Xiaomi) API behavior
 
-- **Never send `enable_thinking: false`** — causes `deepseek-ai/DeepSeek-V4-Flash` to return HTTP 200 with `"choices": null`. All 4 callers (`ModelScopeAICustomerServiceImpl`, `IntentRecognitionServiceImpl`, `SessionMemoryServiceImpl`, `UserPreferenceServiceImpl`) must omit this parameter.
-- Some models fail with 400 "Invalid model id" (e.g., `Qwen/Qwen3-35B-A3B`). Verify models work before adding to rotation.
-- API endpoint: `https://api-inference.modelscope.cn/v1/chat/completions`
-- Key is in Nacos `spring.ai.openai.api-key`
+- AI 对话供应商已从 ModelScope 切换为小米 MiMo。单模型 `mimo-v2.5`（多模态，支持图片输入），不再多模型轮换。
+- **必须发送 `thinking: {type: disabled}`**：MiMo 默认开启推理（生成 `reasoning_content`，慢且费 token）。所有 5 个对话调用点（`ModelScopeAICustomerServiceImpl` 主对话+图片路径、`IntentRecognitionServiceImpl`、`SessionMemoryServiceImpl`、`UserPreferenceServiceImpl`）的 requestBody 已加此参数，客服场景禁用推理以加速响应。
+- API endpoint: `https://api.xiaomimimo.com/v1/chat/completions`（OpenAI 兼容）
+- Key 在 Nacos `spring.ai.openai.api-key`（映射自 env `MODELSCOPE_API_KEY`，变量名沿用历史命名，实际存 MiMo key）
+- 响应解析沿用标准 OpenAI `choices[0].message.content`，已有 `choices != null` 防护。
 
-### Model rotation
+### 单模型 + 重试退避（无多模型轮换）
 
-Models configured via `spring.ai.openai.models` in Nacos (comma-separated list). The `currentModelIndex` rotates across calls; within a call, all models are tried sequentially. **Add a `choices != null` guard** to all response parsers — the API may return `"choices": null` instead of missing key.
+- `spring.ai.openai.models`（env `AI_MODELS`）只配 `mimo-v2.5`，`callModelScopeApi` 的 `attempt % models.size()` 恒为 0，不再轮换。
+- **重试退避**：`maxRetries = Math.max(models.size(), chatMaxRetries)`，`chat.max-retries` 默认 3。单模型时重试同一模型 3 次，非首次请求前 `Thread.sleep(800*attempt)` 退避，缓解限流/瞬时抖动。
+- 历史背景：之前 ModelScope 多模型轮换 + `enable_thinking:false` 与 DeepSeek 不兼容导致 `choices: null`，已切 MiMo 单模型规避。
 
 ### Architecture notes
 
@@ -100,7 +103,7 @@ Currently disabled — both call sites in `ModelScopeAICustomerServiceImpl` are 
 
 ## Your Tasks: What We're Fixing
 
-The `deepseek-ai/DeepSeek-V4-Flash` model currently returns empty responses (`"choices": null`) for many prompts. `deepseek-ai/DeepSeek-V3.2` works as a fallback. The root cause is still under investigation — add response body logging to diagnose.
+(已解决) 之前 ModelScope `DeepSeek-V4-Flash` 返回 `choices: null` 的问题，已通过切换到 MiMo 单模型 `mimo-v2.5` + `thinking:disabled` 规避。当前无遗留待修问题。
 
 ## References
 
