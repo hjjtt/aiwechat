@@ -89,9 +89,9 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
     @Value("${chat.history.limit:10}")
     private int chatHistoryLimit;
 
-    /** 单模型重试次数（含首次），覆盖瞬时抖动；多模型时取 max(models.size(), 此值) */
-    @Value("${chat.max-retries:3}")
-    private int chatMaxRetries;
+    /** 单模型最大尝试次数（含首次），覆盖瞬时抖动；多模型时取 max(models.size(), 此值) */
+    @Value("${chat.max-attempts:3}")
+    private int chatMaxAttempts;
 
     private int currentModelIndex = 0;
 
@@ -427,9 +427,9 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
             return callModelScopeApiWithImage(prompt.userPrompt(), images);
         }
 
-        int maxRetries = Math.max(models.size(), chatMaxRetries);
+        int maxAttempts = Math.max(models.size(), chatMaxAttempts);
 
-        for (int attempt = 0; attempt < maxRetries; attempt++) {
+        for (int attempt = 0; attempt < maxAttempts; attempt++) {
             String currentModel = models.get(attempt % models.size());
 
             // 重试退避：非首次请求前等待，缓解限流/网络瞬时抖动
@@ -498,6 +498,11 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
                 String body = e.getResponseBodyAsString();
                 log.warn("模型 {} 调用失败: HTTP {} - {}", currentModel, e.getStatusCode(), body);
                 lastError = "HTTP " + e.getStatusCode() + ": " + (body != null ? body : e.getMessage());
+                // 4xx 客户端错误（除 429 限流外）不可重试，避免无效退避等待
+                int code = e.getStatusCode().value();
+                if (code != 429 && code < 500) {
+                    break;
+                }
             } catch (Exception e) {
                 log.warn("模型 {} 调用失败: {}", currentModel, e.getMessage());
                 lastError = e.getMessage();

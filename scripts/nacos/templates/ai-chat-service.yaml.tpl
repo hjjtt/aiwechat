@@ -33,6 +33,7 @@ spring:
 chat:
   history:
     limit: ${CHAT_HISTORY_LIMIT}
+  max-attempts: ${CHAT_MAX_ATTEMPTS:3}
 
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
