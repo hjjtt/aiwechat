@@ -18,115 +18,6 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------
--- Table structure for admin
--- ----------------------------
-DROP TABLE IF EXISTS `admin`;
-CREATE TABLE `admin`  (
-  `id` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `username` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `password` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `nickname` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `role` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'admin',
-  `status` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'active',
-  `createdAt` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  `updatedAt` datetime(3) NOT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `Admin_username_key`(`username` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of admin
--- ----------------------------
-
--- ----------------------------
--- Table structure for aimessage
--- ----------------------------
-DROP TABLE IF EXISTS `aimessage`;
-CREATE TABLE `aimessage`  (
-  `id` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `sessionId` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `role` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `tokens` int NULL DEFAULT NULL,
-  `createdAt` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `AIMessage_sessionId_fkey`(`sessionId` ASC) USING BTREE,
-  CONSTRAINT `AIMessage_sessionId_fkey` FOREIGN KEY (`sessionId`) REFERENCES `aisession` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of aimessage
--- ----------------------------
-
--- ----------------------------
--- Table structure for aisession
--- ----------------------------
-DROP TABLE IF EXISTS `aisession`;
-CREATE TABLE `aisession`  (
-  `id` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `userId` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `title` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `context` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
-  `createdAt` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  `updatedAt` datetime(3) NOT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `AISession_userId_fkey`(`userId` ASC) USING BTREE,
-  CONSTRAINT `AISession_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of aisession
--- ----------------------------
-
--- ----------------------------
--- Table structure for cart
--- ----------------------------
-DROP TABLE IF EXISTS `cart`;
-CREATE TABLE `cart`  (
-  `id` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `userId` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `productId` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `quantity` int NOT NULL DEFAULT 1,
-  `selected` tinyint(1) NOT NULL DEFAULT 1,
-  `createdAt` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  `updatedAt` datetime(3) NOT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `Cart_userId_productId_key`(`userId` ASC, `productId` ASC) USING BTREE,
-  INDEX `Cart_productId_fkey`(`productId` ASC) USING BTREE,
-  CONSTRAINT `Cart_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `product` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `Cart_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of cart
--- ----------------------------
-
--- ----------------------------
--- Table structure for category
--- ----------------------------
-DROP TABLE IF EXISTS `category`;
-CREATE TABLE `category`  (
-  `id` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `name` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `parentId` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `sortOrder` int NOT NULL DEFAULT 0,
-  `icon` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `createdAt` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  `updatedAt` datetime(3) NOT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `Category_parentId_fkey`(`parentId` ASC) USING BTREE,
-  CONSTRAINT `Category_parentId_fkey` FOREIGN KEY (`parentId`) REFERENCES `category` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of category
--- ----------------------------
-INSERT INTO `category` VALUES ('cat-1', '电子产品', NULL, 1, NULL, '2026-02-20 08:36:52.939', '2026-02-20 08:36:52.939');
-INSERT INTO `category` VALUES ('cat-2', '服装鞋包', NULL, 2, NULL, '2026-02-20 08:36:52.939', '2026-02-20 08:36:52.939');
-INSERT INTO `category` VALUES ('cat-3', '食品生鲜', NULL, 3, NULL, '2026-02-20 08:36:52.939', '2026-02-20 08:36:52.939');
-INSERT INTO `category` VALUES ('cat-4', '家居用品', NULL, 4, NULL, '2026-02-20 08:36:52.939', '2026-02-20 08:36:52.939');
-
--- ----------------------------
 -- Table structure for chat_records
 -- ----------------------------
 DROP TABLE IF EXISTS `chat_records`;
@@ -212,36 +103,6 @@ INSERT INTO `menu_items` VALUES (5, 'ITEM005', '酸辣汤', '开胃爽口，汤�
 INSERT INTO `menu_items` VALUES (6, 'ITEM006', '蛋炒饭', '粒粒分明，香气扑鼻', 18.00, '主食', NULL, 1, 178, '2026-03-05 11:02:13', '2026-03-05 11:02:13');
 
 -- ----------------------------
--- Table structure for order
--- ----------------------------
-DROP TABLE IF EXISTS `order`;
-CREATE TABLE `order`  (
-  `id` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `orderNo` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `userId` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `totalAmount` decimal(10, 2) NOT NULL,
-  `payAmount` decimal(10, 2) NOT NULL,
-  `status` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `payTime` datetime(3) NULL DEFAULT NULL,
-  `shipTime` datetime(3) NULL DEFAULT NULL,
-  `completeTime` datetime(3) NULL DEFAULT NULL,
-  `cancelTime` datetime(3) NULL DEFAULT NULL,
-  `cancelReason` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `shippingAddress` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
-  `remark` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `createdAt` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  `updatedAt` datetime(3) NOT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `Order_orderNo_key`(`orderNo` ASC) USING BTREE,
-  INDEX `Order_userId_fkey`(`userId` ASC) USING BTREE,
-  CONSTRAINT `Order_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of order
--- ----------------------------
-
--- ----------------------------
 -- Table structure for order_items
 -- ----------------------------
 DROP TABLE IF EXISTS `order_items`;
@@ -263,30 +124,6 @@ CREATE TABLE `order_items`  (
 -- Records of order_items
 -- ----------------------------
 INSERT INTO `order_items` VALUES (1, 1, 5, '酸辣汤', 1, 12.00, 12.00, '2026-03-05 19:37:20');
-
--- ----------------------------
--- Table structure for orderitem
--- ----------------------------
-DROP TABLE IF EXISTS `orderitem`;
-CREATE TABLE `orderitem`  (
-  `id` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `orderId` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `productId` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `productName` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `productImage` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `price` decimal(10, 2) NOT NULL,
-  `quantity` int NOT NULL,
-  `createdAt` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `OrderItem_orderId_fkey`(`orderId` ASC) USING BTREE,
-  INDEX `OrderItem_productId_fkey`(`productId` ASC) USING BTREE,
-  CONSTRAINT `OrderItem_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `order` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `OrderItem_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `product` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of orderitem
--- ----------------------------
 
 -- ----------------------------
 -- Table structure for orders
@@ -314,70 +151,6 @@ CREATE TABLE `orders`  (
 -- Records of orders
 -- ----------------------------
 INSERT INTO `orders` VALUES (1, 'ORD20260305888D8D', 1, 'completed', 12.00, '湖南省湘潭市', 'autumn', '13813813888', '', '2026-03-05 19:37:20', '2026-03-05 11:39:57');
-
--- ----------------------------
--- Table structure for product
--- ----------------------------
-DROP TABLE IF EXISTS `product`;
-CREATE TABLE `product`  (
-  `id` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `name` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
-  `categoryId` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `price` decimal(10, 2) NOT NULL,
-  `originalPrice` decimal(10, 2) NULL DEFAULT NULL,
-  `stock` int NOT NULL DEFAULT 0,
-  `images` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
-  `status` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'onsale',
-  `sales` int NOT NULL DEFAULT 0,
-  `createdAt` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  `updatedAt` datetime(3) NOT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `Product_categoryId_fkey`(`categoryId` ASC) USING BTREE,
-  CONSTRAINT `Product_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `category` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of product
--- ----------------------------
-INSERT INTO `product` VALUES ('prod-1', 'iPhone 15 Pro Max', 'Apple iPhone 15 Pro Max，256GB，原钛金属设计，A17 Pro芯片，全新专业相机系统。', 'cat-1', 9999.00, 10999.00, 100, '[\"https://picsum.photos/800/800?random=1\",\"https://picsum.photos/800/800?random=2\"]', 'onsale', 523, '2026-02-20 08:36:52.960', '2026-02-20 08:36:52.960');
-INSERT INTO `product` VALUES ('prod-10', 'iPad Pro 12.9寸', 'Apple iPad Pro 12.9英寸，M2芯片，Liquid Retina XDR显示屏。', 'cat-1', 9299.00, 9999.00, 60, '[\"https://picsum.photos/800/800?random=11\"]', 'onsale', 178, '2026-02-20 08:36:52.999', '2026-02-20 08:36:52.999');
-INSERT INTO `product` VALUES ('prod-2', 'MacBook Pro 14寸', 'Apple MacBook Pro 14英寸，M3 Pro芯片，18GB统一内存，512GB固态硬盘。', 'cat-1', 15999.00, 16999.00, 50, '[\"https://picsum.photos/800/800?random=3\"]', 'onsale', 234, '2026-02-20 08:36:52.968', '2026-02-20 08:36:52.968');
-INSERT INTO `product` VALUES ('prod-3', 'AirPods Pro 第二代', 'Apple AirPods Pro (第二代)，主动降噪，空间音频，MagSafe充电盒。', 'cat-1', 1899.00, 1999.00, 200, '[\"https://picsum.photos/800/800?random=4\"]', 'onsale', 892, '2026-02-20 08:36:52.974', '2026-02-20 08:36:52.974');
-INSERT INTO `product` VALUES ('prod-4', 'Nike Air Max 270', 'Nike男子运动鞋，Air Max 270大气垫，舒适缓震，时尚百搭。', 'cat-2', 899.00, 1099.00, 150, '[\"https://picsum.photos/800/800?random=5\"]', 'onsale', 456, '2026-02-20 08:36:52.978', '2026-02-20 08:36:52.978');
-INSERT INTO `product` VALUES ('prod-5', '优衣库联名款T恤', '优衣库联名款UT，纯棉舒适，多色可选，简约时尚。', 'cat-2', 79.00, 99.00, 500, '[\"https://picsum.photos/800/800?random=6\"]', 'onsale', 1234, '2026-02-20 08:36:52.981', '2026-02-20 08:36:52.981');
-INSERT INTO `product` VALUES ('prod-6', '新西兰奇异果', '新西兰进口奇异果，12个装，富含维生素C，新鲜甜美。', 'cat-3', 68.00, 88.00, 300, '[\"https://picsum.photos/800/800?random=7\"]', 'onsale', 678, '2026-02-20 08:36:52.985', '2026-02-20 08:36:52.985');
-INSERT INTO `product` VALUES ('prod-7', '三文鱼刺身', '新鲜三文鱼刺身拼盘，500g，挪威进口，-18°C冷链配送。', 'cat-3', 168.00, 198.00, 80, '[\"https://picsum.photos/800/800?random=8\"]', 'onsale', 234, '2026-02-20 08:36:52.989', '2026-02-20 08:36:52.989');
-INSERT INTO `product` VALUES ('prod-8', '戴森吸尘器V15', 'Dyson V15 Detect无线手持吸尘器，激光探测，强劲吸力。', 'cat-4', 4990.00, 5490.00, 30, '[\"https://picsum.photos/800/800?random=9\"]', 'onsale', 89, '2026-02-20 08:36:52.993', '2026-02-20 08:36:52.993');
-INSERT INTO `product` VALUES ('prod-9', '美的智能电饭煲', '美的智能电饭煲，4L大容量，IH电磁加热，多功能烹饪。', 'cat-4', 399.00, 499.00, 120, '[\"https://picsum.photos/800/800?random=10\"]', 'onsale', 345, '2026-02-20 08:36:52.996', '2026-02-20 08:36:52.996');
-
--- ----------------------------
--- Table structure for user
--- ----------------------------
-DROP TABLE IF EXISTS `user`;
-CREATE TABLE `user`  (
-  `id` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `openid` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `unionid` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `nickname` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `avatar` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `phone` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `email` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `password` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `isAdmin` tinyint(1) NOT NULL DEFAULT 0,
-  `status` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'active',
-  `createdAt` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  `updatedAt` datetime(3) NOT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `User_openid_key`(`openid` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of user
--- ----------------------------
-INSERT INTO `user` VALUES ('6822e5fb-eb22-41c6-a783-4564901c7249', 'mock_openid_admin_admin_code', NULL, 'admin', NULL, NULL, NULL, NULL, 0, 'active', '2026-02-20 08:38:22.413', '2026-02-20 08:38:22.413');
-INSERT INTO `user` VALUES ('user-admin-1', NULL, NULL, '管理员', 'https://picsum.photos/200/200?random=101', NULL, 'admin@example.com', NULL, 1, 'active', '2026-02-20 08:36:53.009', '2026-02-20 08:36:53.009');
-INSERT INTO `user` VALUES ('user-test-1', NULL, NULL, '测试用户', 'https://picsum.photos/200/200?random=100', '13800138000', NULL, NULL, 0, 'active', '2026-02-20 08:36:53.004', '2026-02-20 08:36:53.004');
 
 -- ----------------------------
 -- Table structure for user_addresses
@@ -471,5 +244,23 @@ CREATE TABLE `users`  (
 -- Records of users
 -- ----------------------------
 INSERT INTO `users` VALUES (1, 'oBIgH7KYU_DNvW4Uac3b9zvOyYJw', 'autumn', 'http://tmp/GshCsbI-CCnKe16acc670338149eacc69129f0b46e7b.jpeg', 'active', '2026-03-05 19:03:09', '2026-03-05 19:03:09');
+
+-- ----------------------------
+-- Table structure for feedback
+-- ----------------------------
+DROP TABLE IF EXISTS `feedback`;
+CREATE TABLE `feedback` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `session_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT '' COMMENT '会话ID',
+  `question` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '用户问题',
+  `ai_answer` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT 'AI回答',
+  `rating` int NOT NULL COMMENT '评分 1-5',
+  `comment` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '用户评论',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_user_id` (`user_id`) USING BTREE,
+  INDEX `idx_rating` (`rating`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;

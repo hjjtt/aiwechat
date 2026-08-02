@@ -89,8 +89,11 @@ public class SimpleFeedbackServiceImpl implements FeedbackService {
 
     @Override
     public void batchDeleteFeedback(List<Long> ids) {
-        jdbcTemplate.update("DELETE FROM feedback WHERE id IN (" +
-                ids.stream().map(String::valueOf).reduce((a, b) -> a + "," + b).orElse("0") + ")");
+        if (ids.isEmpty()) {
+            return;
+        }
+        String placeholders = ids.stream().map(i -> "?").reduce((a, b) -> a + "," + b).orElse("");
+        jdbcTemplate.update("DELETE FROM feedback WHERE id IN (" + placeholders + ")", ids.toArray());
     }
 
     @Override

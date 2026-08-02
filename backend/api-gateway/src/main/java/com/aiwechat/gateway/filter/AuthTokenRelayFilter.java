@@ -4,6 +4,7 @@ import com.aiwechat.common.constants.GatewayHeaders;
 import com.aiwechat.common.dto.CommonResponse;
 import com.aiwechat.common.dto.UserContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -33,6 +36,9 @@ public class AuthTokenRelayFilter implements GlobalFilter, Ordered {
 
     @Value("${security.auth-service-url:http://localhost:9091}")
     private String authServiceUrl;
+
+    private static final long TOKEN_CACHE_TTL_MS = 30_000L;
+    private final ConcurrentHashMap<String, CachedUser> tokenCache = new ConcurrentHashMap<>();
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -49,6 +55,16 @@ public class AuthTokenRelayFilter implements GlobalFilter, Ordered {
             return unauthorized(exchange, "missing_authorization");
         }
 
+        CachedUser cached = tokenCache.get(authorization);
+        if (cached != null && System.currentTimeMillis() < cached.getExpiresAt()) {
+            ServerHttpRequest cachedRequest = exchange.getRequest().mutate()
+                    .header(GatewayHeaders.USER_ID, String.valueOf(cached.getContext().getUserId()))
+                    .header(GatewayHeaders.OPEN_ID, safe(cached.getContext().getOpenId()))
+                    .header(GatewayHeaders.USER_NICKNAME, safe(cached.getContext().getNickname()))
+                    .build();
+            return chain.filter(exchange.mutate().request(cachedRequest).build());
+        }
+
         return WebClient.builder().baseUrl(authServiceUrl).build()
                 .get()
                 .uri("/api/auth/validate")
@@ -61,6 +77,7 @@ public class AuthTokenRelayFilter implements GlobalFilter, Ordered {
                     }
 
                     UserContext context = response.getData();
+                    tokenCache.put(authorization, new CachedUser(context, System.currentTimeMillis() + TOKEN_CACHE_TTL_MS));
                     ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
                             .header(GatewayHeaders.USER_ID, String.valueOf(context.getUserId()))
                             .header(GatewayHeaders.OPEN_ID, safe(context.getOpenId()))
@@ -115,5 +132,12 @@ public class AuthTokenRelayFilter implements GlobalFilter, Ordered {
         private boolean success;
         private UserContext data;
         private String error;
+    }
+
+    @Data
+    @AllArgsConstructor
+    private static class CachedUser {
+        private UserContext context;
+        private long expiresAt;
     }
 }

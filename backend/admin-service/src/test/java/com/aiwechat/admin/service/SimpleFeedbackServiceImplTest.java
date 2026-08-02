@@ -162,17 +162,17 @@ class SimpleFeedbackServiceImplTest {
     // ---- batchDeleteFeedback ----
 
     @Test
-    @DisplayName("batchDeleteFeedback 应该拼接 IN 子句删除多条")
+    @DisplayName("batchDeleteFeedback 应该用参数化 IN 子句删除多条")
     void batchDeleteFeedbackShouldDeleteMultiple() {
         service.batchDeleteFeedback(List.of(1L, 2L, 3L));
-        verify(jdbcTemplate).update("DELETE FROM feedback WHERE id IN (1,2,3)");
+        verify(jdbcTemplate).update(eq("DELETE FROM feedback WHERE id IN (?,?,?)"), eq(1L), eq(2L), eq(3L));
     }
 
     @Test
     @DisplayName("batchDeleteFeedback 单个 ID 也能正常工作")
     void batchDeleteFeedbackSingle() {
         service.batchDeleteFeedback(List.of(99L));
-        verify(jdbcTemplate).update("DELETE FROM feedback WHERE id IN (99)");
+        verify(jdbcTemplate).update(eq("DELETE FROM feedback WHERE id IN (?)"), eq(99L));
     }
 
     // ---- clearAll ----
