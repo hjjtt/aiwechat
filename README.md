@@ -37,9 +37,9 @@ AIWeChat 面向餐饮/轻食门店，提供：
 aiwechat/
 ├── backend/                    # Spring Cloud 后端微服务
 │   ├── common-core/            # 公共依赖与工具
-│   ├── api-gateway/            # API 网关（端口 9000）
+│   ├── api-gateway/            # API 网关（端口 9090）
 │   ├── auth-service/           # 认证服务（端口 9091）
-│   ├── menu-service/           # 菜单服务（端口 9092）
+│   ├── menu-service/           # 菜单服务（端口 9093）
 │   ├── order-service/          # 订单服务
 │   ├── ai-chat-service/        # AI 对话服务
 │   ├── knowledge-service/      # RAG 知识库服务
@@ -170,13 +170,13 @@ pending（待确认） → confirmed（已确认） → preparing（制作中）
 
 | 服务 | 端口 | 说明 |
 |------|------|------|
-| API Gateway | 9000 | 统一入口 |
+| API Gateway | 9090 | 统一入口 |
 | Auth Service | 9091 | 微信登录、Token 认证 |
-| Menu Service | 9092 | 菜单管理 |
-| Order Service | - | 订单管理 |
-| AI Chat Service | - | AI 对话 |
-| Knowledge Service | - | RAG 知识库 |
-| Admin Service | - | 管理后台 API |
+| Menu Service | 9093 | 菜单管理 |
+| Order Service | 9097 | 订单管理 |
+| AI Chat Service | 9094 | AI 对话 |
+| Knowledge Service | 9095 | RAG 知识库 |
+| Admin Service | 9096 | 管理后台 API |
 
 ---
 
