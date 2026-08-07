@@ -9,13 +9,13 @@ WeChat Mini-program AI customer service system: Spring Cloud microservices backe
 ```
 backend/                        # Maven multi-module parent pom
   common-core/                  # Shared utilities & dependencies
-  api-gateway/                  # Spring Cloud Gateway (port 9000)
+  api-gateway/                  # Spring Cloud Gateway (port 9090)
   auth-service/                 # WeChat login, token auth (port 9091)
-  menu-service/                 # Menu CRUD (port 9092)
-  order-service/                # Order management
+  menu-service/                 # Menu CRUD (port 9093)
+  order-service/                # Order management (port 9097)
   ai-chat-service/              # AI chat, RAG, intent recognition (port 9094)
   knowledge-service/            # RAG vector knowledge base (port 9095)
-  admin-service/                # Admin panel backend
+  admin-service/                # Admin panel backend (port 9096)
 admin/                          # Vue3 admin panel (npm, Vite)
 miniprogram/                    # WeChat mini-program
 config/nacos/                   # Local Nacos installation & data
@@ -84,13 +84,13 @@ Must be a Base64-encoded string of at least 32 raw bytes. The current key at `co
 ### 单模型 + 重试退避（无多模型轮换）
 
 - `spring.ai.openai.models`（env `AI_MODELS`）只配 `mimo-v2.5`，`callModelScopeApi` 的 `attempt % models.size()` 恒为 0，不再轮换。
-- **重试退避**：`maxRetries = Math.max(models.size(), chatMaxRetries)`，`chat.max-retries` 默认 3。单模型时重试同一模型 3 次，非首次请求前 `Thread.sleep(800*attempt)` 退避，缓解限流/瞬时抖动。
+- **重试退避**：`maxAttempts = Math.max(models.size(), chatMaxAttempts)`，`chat.max-attempts` 默认 3。单模型时重试同一模型 3 次，非首次请求前 `Thread.sleep(800*attempt)` 退避，缓解限流/瞬时抖动。
 - 历史背景：之前 ModelScope 多模型轮换 + `enable_thinking:false` 与 DeepSeek 不兼容导致 `choices: null`，已切 MiMo 单模型规避。
 
 ### Architecture notes
 
 - `RestClient` is a shared Bean from `RestClientConfig` (connect=10s, read=60s), injected via Lombok `@RequiredArgsConstructor` in every service
-- `@EnableCaching` is on `AiChatServiceApplication`; `@Cacheable` on `getChatHistory`
+- `@EnableCaching` is on `AiChatServiceApplication`; `getChatHistory` is no longer `@Cacheable` (removed so a Redis outage doesn't 500).
 - `ChatRecordService` is a separate Bean (avoids self-invocation proxy issues)
 - Intent recognition + RAG run in parallel via `CompletableFuture` (15s/10s timeouts)
 - Session memory has TTL cleanup (every 10min, 2h idle) + disk persistence (every 5min snapshots)

@@ -42,13 +42,13 @@ Controller -> Service -> Repository -> Database
 
 **Microservices** (each `backend/<module>`, port in parentheses):
 - `common-core` — shared DTOs (`CommonResponse`, `UserContext`), exceptions, JWT util, interceptors. **Dependency for all services** (install to .m2 before running any service).
-- `api-gateway` (9000) — Spring Cloud Gateway. `AuthTokenRelayFilter` validates token via auth-service and injects `X-User-Id`/`X-Open-Id`/`X-User-Nickname` headers for downstream services.
+- `api-gateway` (9090) — Spring Cloud Gateway. `AuthTokenRelayFilter` validates the `Authorization` token via auth-service (`/api/auth/validate`) and injects `X-User-Id`/`X-Open-Id`/`X-User-Nickname` headers; a 30s TTL `ConcurrentHashMap` token cache skips the auth call on hit. Anonymous paths (`/api/menu/**`, `/api/knowledge/search`, `/api/ai-chat/health`, `/api/auth/**`, `/api/wechat/login`, `/actuator/**`) and all `/api/admin/**` bypass this filter (admin auth is enforced inside admin-service).
 - `auth-service` (9091) — WeChat OAuth login, token issuance (72h expiry).
 - `menu-service` (9093) — menu CRUD, favorites, image upload.
-- `order-service` — orders + user addresses. Status flow: `pending` -> `confirmed` -> `preparing` -> `delivering` -> `completed` (or `cancelled`).
+- `order-service` (9097) — orders + user addresses. Status flow: `pending` -> `confirmed` -> `preparing` -> `delivering` -> `completed` (or `cancelled`).
 - `ai-chat-service` (9094) — AI chat, intent recognition, session memory, content safety. **See AI Chat Service below.**
 - `knowledge-service` (9095) — RAG: LazyGraphRAG, hybrid search, query routing, eval, multi-strategy chunking (FAQ/Menu/Rule/Generic).
-- `admin-service` — admin panel backend API.
+- `admin-service` (9096) — admin panel backend API.
 
 **Cross-cutting**: services read user identity from gateway-injected headers via `UserContextHelper.requireUserId(httpRequest)` (header `X-User-Id`).
 
@@ -118,6 +118,9 @@ MySQL 8 at `localhost:3306/aiwechat` (root/123456 default). Key tables: `users`,
 - **MSYS/encoding**: use `export JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF-8"` for Maven builds.
 - **Lombok**: `@Slf4j`, `@Service`, `@RequiredArgsConstructor` (constructor injection) throughout.
 - **MyBatis-Plus**: XML mappers in `resources/mapper/`; `map-underscore-to-camel-case: true`.
+- **`scanBasePackages` is mandatory on every service**: each `@SpringBootApplication` must declare `scanBasePackages = {"com.aiwechat.<module>", "com.aiwechat.common"}` so common-core's `GlobalExceptionHandler`, interceptors, and beans load. Forgetting this was a real security bug (admin-service's `AdminAuthInterceptor` never loaded -> all `/api/admin/**` unauthenticated). Only `api-gateway` uses a bare `@SpringBootApplication` (reactive web).
+- **Admin auth is enforced inside admin-service, not the gateway**: `/api/admin/**` is explicitly skipped by the gateway filter; admin-service's `AdminAuthInterceptor` checks the `X-Admin-Secret` header (a JWT signed with `admin.auth.secret` / env `ADMIN_AUTH_SECRET`; the admin login endpoint mints it from `ADMIN_AUTH_USERNAME`/`ADMIN_AUTH_PASSWORD`). Don't assume the gateway covers admin routes.
+- **MyBatis N+1 vs pagination tradeoff**: list-by-user order queries (`OrderMapper.findByUserId`/`findByUserIdAndStatus`) use `LEFT JOIN` + inline `<collection>` to avoid N+1; the paginated `findAllWithFilter` keeps a nested `<select>` so `LIMIT` applies to orders (not joined items). Preserve the split when editing these mappers - flattening the paginated one breaks LIMIT correctness.
 
 ## Common Issues
 

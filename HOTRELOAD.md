@@ -1,121 +1,42 @@
-# Spring Boot DevTools 热加载配置指南
+# Spring Boot DevTools 热加载
 
-## ✅ 已配置功能
+## 适用范围
 
-项目已配置 Spring Boot DevTools，支持以下热加载功能：
+`spring-boot-devtools` 已作为依赖加入 6 个服务：`auth-service`、`menu-service`、`order-service`、`ai-chat-service`、`knowledge-service`、`admin-service`。`api-gateway` 为 reactive 网关，未引入 DevTools。
 
-### 1. **自动重启 (Automatic Restart)**
-- **触发条件**: 修改 `src/main/java` 下的 Java 文件并保存
-- **重启延迟**: 文件保存后 1 秒自动重启
-- **排除路径**: `static/**`, `public/**` 下的文件修改不会触发重启
+> 当前为微服务架构，每个服务独立运行，不再有单体 `AiwechatApplication` 或 `aiwechat-*.jar`。
 
-### 2. **LiveReload**
-- **功能**: 浏览器自动刷新（需要安装 LiveReload 浏览器插件）
-- **状态**: 已启用
+## 运行方式
 
-### 3. **触发文件重启**
-- **触发文件**: `.reloadtrigger`
-- **用法**: 修改此文件内容可手动触发重启
-
-## 🚀 使用方法
-
-### 方式一：Maven 运行（推荐）
 ```bash
-# 开发模式运行（支持热加载）
-mvn spring-boot:run
+# 1. 一次性：把 common-core 安装到本地仓库
+mvn install -pl common-core -am -DskipTests
 
-# 或者先编译再运行
-mvn clean package -DskipTests
-java -jar target/aiwechat-1.0.0-SNAPSHOT.jar
+# 2. 以 DevTools 模式运行某个服务（不要加 -am，否则对父 pom 执行 run 目标会报 no main class）
+mvn spring-boot:run -pl ai-chat-service
 ```
 
-### 方式二：IDEA 运行
-1. 确保已安装 Lombok 插件
-2. 启用注解处理器：`Settings → Build → Compiler → Annotation Processors`
-3. 运行 `AiwechatApplication.java`
-4. 修改代码后按 `Ctrl+F9` (Windows) 或 `Cmd+F9` (Mac) 重新编译
+修改该服务 `src/main/java` 下的源码并重新编译后，DevTools 会在约 1 秒后自动重启该服务进程。
 
-### 方式三：Eclipse 运行
-1. 确保已安装 Lombok
-2. 启用自动构建：`Project → Build Automatically`
-3. 运行 `AiwechatApplication.java`
-4. 修改代码后自动保存即可触发重启
+## IDE 配置
 
-## ⚙️ 配置说明
+- 安装 Lombok 插件，并启用注解处理器：`Settings -> Build -> Compiler -> Annotation Processors`。
+- IDEA 按 `Ctrl+F9`（Mac `Cmd+F9`）重新编译即触发重启。
+- 修改 `application.yml` / 增删 Maven 依赖不会触发热重启，需手动重启。
 
-### application.yml 配置
+## 触发文件（可选）
+
+仓库根目录有 `.reloadtrigger` 文件。DevTools 的触发文件模式需在服务配置中设置 `spring.devtools.restart.trigger-file` 指向它才生效；当前 `application.yml` 与 Nacos 模板未配置此项，故默认走 classpath 变更自动重启。如需启用：
+
 ```yaml
 spring:
   devtools:
     restart:
-      enabled: true              # 启用重启
-      additional-paths: src/main/java  # 监控路径
-      exclude: static/**,public/**     # 排除路径
-    livereload:
-      enabled: true              # 启用 LiveReload
+      trigger-file: .reloadtrigger
 ```
 
-### pom.xml 配置
-```xml
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-devtools</artifactId>
-    <scope>runtime</scope>
-    <optional>true</optional>
-</dependency>
-```
+## 注意事项
 
-## 📋 热加载测试
-
-1. **启动应用**:
-   ```bash
-   mvn spring-boot:run
-   ```
-
-2. **修改代码**:
-   - 打开任意 Controller 或 Service 文件
-   - 修改某个方法的返回值或日志
-   - 保存文件
-
-3. **观察日志**:
-   ```
-   2026-03-21T00:00:00.000+08:00  INFO 12345 --- [ restartedMain] com.aiwechat.AiwechatApplication : Starting AiwechatApplication...
-   2026-03-21T00:00:01.000+08:00  INFO 12345 --- [ restartedMain] com.aiwechat.AiwechatApplication : Started AiwechatApplication in 1.5s
-   ```
-   看到 `restartedMain` 表示热加载成功！
-
-## ⚠️ 注意事项
-
-1. **生产环境禁用**: DevTools 在生产环境会自动禁用
-2. **Lombok 兼容**: 确保 IDE 已安装 Lombok 插件并启用注解处理
-3. **静态资源**: 修改 `static/` 或 `public/` 下的文件不会触发重启
-4. **配置文件**: 修改 `application.yml` 需要手动重启
-5. **依赖变更**: 添加/修改 Maven 依赖需要重新编译
-
-## 🔧 故障排查
-
-### 问题：热加载不生效
-
-**解决方案**:
-1. 检查 `application.yml` 中 `spring.devtools.restart.enabled=true`
-2. 确保使用 `mvn spring-boot:run` 运行，而不是直接运行 jar
-3. 检查 IDE 是否启用了自动编译
-4. 尝试修改 `.reloadtrigger` 文件手动触发
-
-### 问题：重启速度慢
-
-**优化方案**:
-1. 在 `application.yml` 中添加排除路径：
-   ```yaml
-   spring:
-     devtools:
-       restart:
-         exclude: src/main/resources/templates/**,src/main/resources/static/**
-   ```
-2. 减少监控的文件数量
-3. 增加 JVM 内存：`-Xmx512m`
-
-## 📚 参考资料
-
-- [Spring Boot DevTools 官方文档](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#using.devtools)
-- [Maven Spring Boot Plugin](https://docs.spring.io/spring-boot/docs/current/maven-plugin/reference/htmlsingle/)
+- 生产环境 DevTools 自动禁用（`java -jar` 启动时不生效）。
+- LiveReload 默认启用，需浏览器插件配合刷新页面。
+- 热重启只作用于当前运行的单个服务；跨服务改动需分别重启对应服务。
