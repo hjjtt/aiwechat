@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ModelScopeAICustomerServiceImpl implements AICustomerService {
+public class DeepSeekAICustomerServiceImpl implements AICustomerService {
 
     private final ChatRecordRepository chatRecordRepository;
     private final ChatRecordService chatRecordService;
@@ -73,7 +73,7 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
     @Value("${spring.ai.openai.chat.options.model}")
     private String model;
 
-    @Value("${spring.ai.openai.models:mimo-v2.5}")
+    @Value("${spring.ai.openai.models:deepseek-flash}")
     private List<String> models;
 
     @Value("${spring.servlet.multipart.location:./uploaded}")
@@ -207,7 +207,7 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
         EnhancedPrompt prompt = buildEnhancedPrompt(question, request, intent, searchResult, memory, userOrders);
 
         // ========== 6. 调用 LLM ==========
-        String aiReply = callModelScopeApi(prompt, images);
+        String aiReply = callDeepSeekApi(prompt, images);
 
         // ========== 7. 保存到三层记忆 ==========
         sessionMemoryService.saveMessage(userId, sessionId, question, aiReply);
@@ -414,17 +414,17 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
     }
 
     /**
-     * 调用 ModelScope API（多模型轮询）
+     * 调用大模型对话接口（按配置的模型列表轮询重试）
      */
-    private String callModelScopeApi(EnhancedPrompt prompt, List<String> images) {
+    private String callDeepSeekApi(EnhancedPrompt prompt, List<String> images) {
         if (models == null || models.isEmpty()) {
-            models = List.of("mimo-v2.5");
+            models = List.of("deepseek-flash");
         }
 
         String lastError = "";
 
         if (images != null && !images.isEmpty()) {
-            return callModelScopeApiWithImage(prompt.userPrompt(), images);
+            return callDeepSeekApiWithImage(prompt.userPrompt(), images);
         }
 
         int maxAttempts = Math.max(models.size(), chatMaxAttempts);
@@ -460,7 +460,7 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
                 messages.add(userMessage);
                 requestBody.put("messages", messages);
                 requestBody.put("stream", false);
-                // MiMo: 禁用推理模式（thinking），加速响应、降低 token 消耗
+                // 关闭推理模式（thinking）：加速响应、降低 token 消耗
                 requestBody.put("thinking", Map.of("type", "disabled"));
 
                 String responseJson = restClient.post()
@@ -516,11 +516,11 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
     }
 
     /**
-     * 调用 ModelScope 视觉模型（图片识别）
+     * 调用配置的多模态模型进行图片理解
      */
-    private String callModelScopeApiWithImage(String prompt, List<String> images) {
-        String visionModel = "mimo-v2.5";
-        log.info("检测到图片，使用视觉模型: {}", visionModel);
+    private String callDeepSeekApiWithImage(String prompt, List<String> images) {
+        String visionModel = model;
+        log.info("检测到图片，使用多模态模型: {}", visionModel);
 
         try {
             Map<String, Object> requestBody = new HashMap<>();
@@ -576,18 +576,18 @@ public class ModelScopeAICustomerServiceImpl implements AICustomerService {
                         if (message.containsKey("content")) {
                             String content = (String) message.get("content");
                             content = cleanAIResponse(content);
-                            log.info("视觉模型 {} 识别成功", visionModel);
+                            log.info("多模态模型 {} 识别成功", visionModel);
                             return content;
                         }
                     }
                 }
             }
 
-            log.warn("视觉模型 {} 响应格式异常", visionModel);
+            log.warn("多模态模型 {} 响应格式异常", visionModel);
             return "图片识别失败，请稍后重试。";
 
         } catch (Exception e) {
-            log.error("视觉模型 {} 调用失败: {}", visionModel, e.getMessage());
+            log.error("多模态模型 {} 调用失败: {}", visionModel, e.getMessage());
             return "抱歉，图片识别服务暂时不可用：" + e.getMessage();
         }
     }

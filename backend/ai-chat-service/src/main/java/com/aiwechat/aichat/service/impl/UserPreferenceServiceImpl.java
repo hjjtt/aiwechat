@@ -30,11 +30,11 @@ public class UserPreferenceServiceImpl implements UserPreferenceService {
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
 
-    /** ModelScope API 密钥 */
+    /** DeepSeek API 密钥 */
     @Value("${spring.ai.openai.api-key}")
     private String apiKey;
 
-    /** ModelScope API 基础URL */
+    /** DeepSeek API 基础URL */
     @Value("${spring.ai.openai.base-url}")
     private String baseUrl;
 

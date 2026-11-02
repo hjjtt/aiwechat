@@ -1,6 +1,6 @@
 # AIWeChat · 微信小程序 AI 客服点餐系统
 
-基于 Spring Cloud + 微信小程序 + Vue3 的智能客服点餐解决方案，集成小米 MiMo 大模型实现 AI 对话、RAG 知识库、订单管理与人工转接。
+基于 Spring Cloud + 微信小程序 + Vue3 的智能客服点餐解决方案，集成 DeepSeek 大模型实现 AI 对话、RAG 知识库、订单管理与人工转接。
 
 ---
 
@@ -11,7 +11,7 @@ AIWeChat 面向餐饮/轻食门店，提供：
 - **用户端**：微信小程序点餐、AI 智能客服问答、订单追踪、地址管理、收藏夹。
 - **管理端**：Vue3 + Element Plus 后台，管理用户、订单、菜单、聊天记录。
 - **服务端**：Spring Cloud 微服务架构，含网关、认证、AI 对话、知识库、订单、菜单、管理后台等模块。
-- **AI 能力**：基于小米 MiMo（mimo-v2.5，多模态）单模型对话，支持 RAG 知识库 PDF 检索与人工转接。
+- **AI 能力**：基于 DeepSeek（deepseek-flash，多模态）单模型对话，支持 RAG 知识库 PDF 检索与人工转接。
 
 ---
 
@@ -27,7 +27,7 @@ AIWeChat 面向餐饮/轻食门店，提供：
 | 向量存储 | 本地 JSON 向量存储 / Spring AI Vector Store |
 | 管理端 | Vue 3、Vite、Element Plus、Pinia、Axios |
 | 用户端 | 微信小程序原生框架 |
-| AI 模型 | 小米 MiMo（mimo-v2.5，多模态）、智谱 Embedding |
+| AI 模型 | DeepSeek（deepseek-flash，多模态）、智谱 Embedding |
 
 ---
 
@@ -89,7 +89,7 @@ DB_PASSWORD=your_password
 WECHAT_APP_ID=your_wechat_app_id
 WECHAT_APP_SECRET=your_wechat_app_secret
 
-MODELSCOPE_API_KEY=your_mimo_api_key
+DEEPSEEK_API_KEY=your_deepseek_api_key
 EMBEDDING_API_KEY=your_embedding_api_key
 AMAP_API_KEY=your_amap_api_key
 ```
@@ -147,7 +147,7 @@ npm run dev
 | 功能 | 说明 |
 |------|------|
 | 微信登录 | `wx.login` 获取 code，后端换取 openId 并签发 Token |
-| AI 智能客服 | MiMo 单模型对话，支持上下文与 RAG 知识库检索 |
+| AI 智能客服 | DeepSeek 单模型对话，支持上下文与 RAG 知识库检索 |
 | 知识库管理 | 上传 PDF，自动切分、Embedding 并支持检索问答 |
 | 人工转接 | 复杂问题可转人工客服处理 |
 | 菜单点餐 | 分类浏览、搜索、加购、收藏 |

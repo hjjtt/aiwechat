@@ -19,7 +19,7 @@ import java.util.Map;
 
 /**
  * 意图识别服务实现
- * 调用 ModelScope API，让 LLM 输出结构化 JSON（意图 + 槽位 + 置信度）
+ * 调用 DeepSeek API，让 LLM 输出结构化 JSON（意图 + 槽位 + 置信度）
  */
 @Slf4j
 @Service

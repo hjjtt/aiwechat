@@ -161,8 +161,8 @@ if ([string]::IsNullOrWhiteSpace($Namespace)) {
 
 $defaults = @{
     "WECHAT_SESSION_HOST" = "https://api.weixin.qq.com/sns/jscode2session"
-    "AI_BASE_URL" = "https://api-inference.modelscope.cn/v1"
-    "AI_MODEL" = "qwen/Qwen3-1.7B"
+    "AI_BASE_URL" = "https://api.deepseek.com"
+    "AI_MODEL" = "deepseek-flash"
     "AI_TEMPERATURE" = "0.7"
     "AI_MODEL_INDEX" = "0"
     "TOKEN_EXPIRE_HOURS" = "72"
@@ -197,7 +197,7 @@ $required = @(
     "DB_PASSWORD",
     "WECHAT_APP_ID",
     "WECHAT_APP_SECRET",
-    "MODELSCOPE_API_KEY",
+    "DEEPSEEK_API_KEY",
     "AMAP_API_KEY"
 )
 Ensure-RequiredKeys -Vars $vars -Keys $required

@@ -43,7 +43,7 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
-        <!-- Spring AI OpenAI（用于调用 ModelScope 兼容接口） -->
+        <!-- Spring AI OpenAI（用于调用 DeepSeek 兼容接口） -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-model-openai</artifactId>

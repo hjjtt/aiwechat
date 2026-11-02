@@ -225,7 +225,7 @@ User  Product Knowledge
 迁移来源：
 
 1. `AIChatController`
-2. `ModelScopeAICustomerServiceImpl`
+2. `DeepSeekAICustomerServiceImpl`
 3. `AsyncAiServiceImpl`
 4. `HumanTransferServiceImpl`
 5. `ChatRecordRepository`

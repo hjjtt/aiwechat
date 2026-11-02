@@ -559,8 +559,8 @@ Authorization: Bearer {token}
 ```
 
 **说明**:
-- 有图片时自动使用 `moonshotai/Kimi-K2.5` 模型
-- 无图片时使用模型轮换（Qwen3-1.7B → GLM-4.7-Flash → Kimi-K2.5 → MiniMax-M2.5）
+- 有图片时使用配置的多模态模型（`deepseek-flash`）
+- 无图片时使用单模型 `deepseek-flash`（不做多模型轮换）
 
 ---
 
@@ -1181,18 +1181,15 @@ Authorization: Bearer {token}
 
 ## 配置说明
 
-### ModelScope AI 配置
+### DeepSeek AI 配置
 ```yaml
 spring:
   ai:
     openai:
-      api-key: ${MODELSCOPE_API_KEY}
-      base-url: https://api-inference.modelscope.cn/v1
+      api-key: ${DEEPSEEK_API_KEY}
+      base-url: https://api.deepseek.com
       models:
-        - qwen/Qwen3-1.7B
-        - ZhipuAI/GLM-4.7-Flash
-        - moonshotai/Kimi-K2.5  # 支持图片识别
-        - MiniMax/MiniMax-M2.5
+        - deepseek-flash  # 多模态，支持图片识别
 ```
 
 ### 文件上传配置

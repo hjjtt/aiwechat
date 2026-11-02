@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-WeChat Mini-program AI Customer Service + Ordering system. Spring Cloud microservices backend, WeChat mini-program frontend, Vue3 admin panel. AI chat powered by **Xiaomi MiMo** (`mimo-v2.5`, multimodal), with RAG knowledge base. JDK 17, Spring Boot 3.2, Spring Cloud 2023, Spring Cloud Alibaba, Nacos, MySQL 8.
+WeChat Mini-program AI Customer Service + Ordering system. Spring Cloud microservices backend, WeChat mini-program frontend, Vue3 admin panel. AI chat powered by **DeepSeek** (`deepseek-flash`, multimodal), with RAG knowledge base. JDK 17, Spring Boot 3.2, Spring Cloud 2023, Spring Cloud Alibaba, Nacos, MySQL 8.
 
 ## Build & Run
 
@@ -54,15 +54,15 @@ Controller -> Service -> Repository -> Database
 
 ## AI Chat Service
 
-**Provider**: Xiaomi MiMo (`https://api.xiaomimimo.com/v1`), single model `mimo-v2.5` (multimodal — supports image input). **No multi-model rotation** (previously ModelScope rotation caused `choices: null` issues; switched to single MiMo model).
+**Provider**: DeepSeek official API (`https://api.deepseek.com`), single model `deepseek-flash` (multimodal — supports image input). **No multi-model rotation**.
 
-**Critical: `thinking: {type: disabled}` must be sent in every chat request body.** MiMo defaults to reasoning mode (generates `reasoning_content`, slow + costly). All 5 chat call sites in `ai-chat-service` add this: `ModelScopeAICustomerServiceImpl` (main chat + image path), `IntentRecognitionServiceImpl`, `SessionMemoryServiceImpl`, `UserPreferenceServiceImpl`. (Class name retains "ModelScope" prefix for historical reasons — it now calls MiMo.)
+**Note: `thinking: {type: disabled}` is still sent in every chat request body.** This parameter was added during the MiMo period and is retained at all 5 chat call sites in `ai-chat-service`: `DeepSeekAICustomerServiceImpl` (main chat + image path), `IntentRecognitionServiceImpl`, `SessionMemoryServiceImpl`, `UserPreferenceServiceImpl`.
 
-**Retry/backoff** (`callModelScopeApi`): `maxAttempts = max(models.size(), chatMaxAttempts)` (config `chat.max-attempts`, default 3). Non-first attempts sleep `800ms * attempt`. **4xx errors (except 429) do NOT retry** — fail fast to avoid useless backoff. 5xx/429/network errors retry.
+**Retry/backoff** (`callDeepSeekApi`): `maxAttempts = max(models.size(), chatMaxAttempts)` (config `chat.max-attempts`, default 3). Non-first attempts sleep `800ms * attempt`. **4xx errors (except 429) do NOT retry** — fail fast to avoid useless backoff. 5xx/429/network errors retry.
 
-**Pipeline** (`handleUserQuery`): intent recognition + RAG retrieval run in parallel via `CompletableFuture` (15s/10s timeouts) -> route system prompt + 3-layer memory (facts/summary/recent) -> call MiMo -> update memory -> save record -> (human transfer currently disabled).
+**Pipeline** (`handleUserQuery`): intent recognition + RAG retrieval run in parallel via `CompletableFuture` (15s/10s timeouts) -> route system prompt + 3-layer memory (facts/summary/recent) -> call DeepSeek -> update memory -> save record -> (human transfer currently disabled).
 
-**Vision**: image path uses `mimo-v2.5` with OpenAI-compatible `image_url` content blocks.
+**Vision**: image path uses the configured model (`deepseek-flash`) with OpenAI-compatible `image_url` content blocks.
 
 `KnowledgeBaseServiceImpl` is separate — calls knowledge-service (HTTP, port 9095), not the chat API.
 
@@ -71,10 +71,10 @@ Controller -> Service -> Repository -> Database
 **Runtime config flow**: `.env` -> `scripts/nacos/publish-config.ps1` renders `scripts/nacos/templates/*.tpl` (substituting `${VAR}`) -> publishes yaml to Nacos -> services import via `spring.config.import: optional:nacos:<dataId>.yaml`.
 
 - `application.yml` imports `.env` then Nacos configs — **Nacos config overrides `.env`** (higher precedence).
-- `spring.ai.openai.api-key` maps to env `MODELSCOPE_API_KEY` (name kept for `.tpl` compatibility; **holds the MiMo key**).
+- `spring.ai.openai.api-key` maps to env `DEEPSEEK_API_KEY`.
 - `spring.ai.openai.base-url`/`chat.options.model`/`models` map to `AI_BASE_URL`/`AI_MODEL`/`AI_MODELS`.
 
-**Key env vars** (see `.env.example`): `DB_*`, `WECHAT_APP_*`, `MODELSCOPE_API_KEY` (MiMo key), `AI_BASE_URL`, `AI_MODEL`, `AI_MODELS`, `EMBEDDING_API_KEY`/`EMBEDDING_BASE_URL` (智谱, separate from chat), `AMAP_API_KEY`, `NACOS_*`.
+**Key env vars** (see `.env.example`): `DB_*`, `WECHAT_APP_*`, `DEEPSEEK_API_KEY`, `AI_BASE_URL`, `AI_MODEL`, `AI_MODELS`, `EMBEDDING_API_KEY`/`EMBEDDING_BASE_URL` (智谱, separate from chat), `AMAP_API_KEY`, `NACOS_*`.
 
 ## Frontend
 
@@ -122,13 +122,13 @@ MySQL 8 at `localhost:3306/aiwechat` (root/123456 default). Key tables: `users`,
 ## Common Issues
 
 - **`spring-boot:run -pl X -am` fails** ("no main class"): the `-am` adds parent to reactor and the run goal executes on parent. Fix: `mvn install -pl common-core -am` first, then `mvn spring-boot:run -pl X` (no `-am`).
-- **Service loads old (ModelScope) config despite updated `.env`**: Nacos client snapshot cache (see above) OR Nacos server still has old config (re-run `publish-config.ps1`).
+- **Service loads old provider config despite updated `.env`**: Nacos client snapshot cache (see above) OR Nacos server still has old config (re-run `publish-config.ps1`).
 - **Missing tables**: run `scripts/sql/init-database.sql` + `scripts/sql/aiwechat.sql`.
 - **Admin CORS**: backend must allow admin dev server origin.
 - **Redis optional**: rate limiting + some cache features need Redis.
 
 ## References
 
-- `AGENTS.md` — AI chat service critical facts (MiMo API behavior, retry, architecture notes)
+- `AGENTS.md` — AI chat service critical facts (DeepSeek API behavior, retry, architecture notes)
 - `README.md` — quick start, tech stack
 - `docs/` — API docs, RAG setup guide, Nacos startup guide

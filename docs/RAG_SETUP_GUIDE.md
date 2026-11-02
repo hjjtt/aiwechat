@@ -25,7 +25,7 @@ spring:
 - ✅ `knowledge-service` 仅依赖 embedding / vector store，不再强依赖 chat bean
 - ✅ 内存模式（Spring AI 1.1.2 持久化 API 有变化，后续版本添加）
 
-### 3. ModelScopeAICustomerServiceImpl.java 更新
+### 3. DeepSeekAICustomerServiceImpl.java 更新
 - ✅ 注入 KnowledgeBaseService
 - ✅ 在 handleUserQuery 中添加 RAG 检索逻辑
 - ✅ 添加 buildRagPrompt 方法构建增强 Prompt

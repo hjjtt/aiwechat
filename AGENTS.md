@@ -73,19 +73,19 @@ Must be a Base64-encoded string of at least 32 raw bytes. The current key at `co
 
 ## AI Chat Service Critical Facts
 
-### MiMo (Xiaomi) API behavior
+### DeepSeek API behavior
 
-- AI 对话供应商已从 ModelScope 切换为小米 MiMo。单模型 `mimo-v2.5`（多模态，支持图片输入），不再多模型轮换。
-- **必须发送 `thinking: {type: disabled}`**：MiMo 默认开启推理（生成 `reasoning_content`，慢且费 token）。所有 5 个对话调用点（`ModelScopeAICustomerServiceImpl` 主对话+图片路径、`IntentRecognitionServiceImpl`、`SessionMemoryServiceImpl`、`UserPreferenceServiceImpl`）的 requestBody 已加此参数，客服场景禁用推理以加速响应。
-- API endpoint: `https://api.xiaomimimo.com/v1/chat/completions`（OpenAI 兼容）
-- Key 在 Nacos `spring.ai.openai.api-key`（映射自 env `MODELSCOPE_API_KEY`，变量名沿用历史命名，实际存 MiMo key）
+- AI 对话供应商已切换为 DeepSeek 官方 API。单模型 `deepseek-flash`（多模态，支持图片输入），不再多模型轮换。
+- 所有 5 个对话调用点（`DeepSeekAICustomerServiceImpl` 主对话+图片路径、`IntentRecognitionServiceImpl`、`SessionMemoryServiceImpl`、`UserPreferenceServiceImpl`）的 requestBody 仍携带 `thinking: {type: disabled}`（MiMo 时期保留的参数）。
+- API endpoint: `https://api.deepseek.com/chat/completions`（OpenAI 兼容）
+- Key 在 Nacos `spring.ai.openai.api-key`（映射自 env `DEEPSEEK_API_KEY`）
 - 响应解析沿用标准 OpenAI `choices[0].message.content`，已有 `choices != null` 防护。
 
 ### 单模型 + 重试退避（无多模型轮换）
 
-- `spring.ai.openai.models`（env `AI_MODELS`）只配 `mimo-v2.5`，`callModelScopeApi` 的 `attempt % models.size()` 恒为 0，不再轮换。
+- `spring.ai.openai.models`（env `AI_MODELS`）只配 `deepseek-flash`，`callDeepSeekApi` 的 `attempt % models.size()` 恒为 0，不再轮换。
 - **重试退避**：`maxRetries = Math.max(models.size(), chatMaxRetries)`，`chat.max-retries` 默认 3。单模型时重试同一模型 3 次，非首次请求前 `Thread.sleep(800*attempt)` 退避，缓解限流/瞬时抖动。
-- 历史背景：之前 ModelScope 多模型轮换 + `enable_thinking:false` 与 DeepSeek 不兼容导致 `choices: null`，已切 MiMo 单模型规避。
+- 历史背景：ModelScope 多模型轮换 → 小米 MiMo 单模型 → DeepSeek 官方 API 单模型；当前配置见 `.env.example`。
 
 ### Architecture notes
 
@@ -99,11 +99,11 @@ Must be a Base64-encoded string of at least 32 raw bytes. The current key at `co
 
 ### Preference extraction
 
-Currently disabled — both call sites in `ModelScopeAICustomerServiceImpl` are commented out with TODO markers. Do not enable until storage is implemented.
+Currently disabled — both call sites in `DeepSeekAICustomerServiceImpl` are commented out with TODO markers. Do not enable until storage is implemented.
 
 ## Your Tasks: What We're Fixing
 
-(已解决) 之前 ModelScope `DeepSeek-V4-Flash` 返回 `choices: null` 的问题，已通过切换到 MiMo 单模型 `mimo-v2.5` + `thinking:disabled` 规避。当前无遗留待修问题。
+当前使用 DeepSeek 官方 API 单模型 `deepseek-flash`，无遗留待修问题。
 
 ## References
 

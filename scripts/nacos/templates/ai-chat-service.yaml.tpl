@@ -22,9 +22,9 @@ spring:
       location: ./uploads
   ai:
     openai:
-      api-key: ${MODELSCOPE_API_KEY}
+      api-key: ${DEEPSEEK_API_KEY}
       base-url: ${AI_BASE_URL}
-      models: ${AI_MODELS:mimo-v2.5}
+      models: ${AI_MODELS:deepseek-flash}
       chat:
         options:
           model: ${AI_MODEL}

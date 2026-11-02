@@ -77,9 +77,9 @@ $vars['NACOS_PASSWORD'] = $Password
 
 $defaults = @{
     'WECHAT_SESSION_HOST' = 'https://api.weixin.qq.com/sns/jscode2session'
-    'AI_BASE_URL' = 'https://api.xiaomimimo.com/v1'
-    'AI_MODEL' = 'mimo-v2.5'
-    'AI_MODELS' = 'mimo-v2.5'
+    'AI_BASE_URL' = 'https://api.deepseek.com'
+    'AI_MODEL' = 'deepseek-flash'
+    'AI_MODELS' = 'deepseek-flash'
     'AI_TEMPERATURE' = '0.7'
     'AI_MODEL_INDEX' = '0'
     'TOKEN_EXPIRE_HOURS' = '72'
